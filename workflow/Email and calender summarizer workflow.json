@@ -1,0 +1,1284 @@
+{
+  "name": "AI-Assitant-Executive",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "simple": false,
+        "filters": {
+          "q": "={{ \n (() => {\n const yesterday = new Date();\n yesterday.setDate(yesterday.getDate() - 1);\n return `after:${yesterday.getFullYear()}/${(yesterday.getMonth() + 1).toString().padStart(2, '0')}/${yesterday.getDate().toString().padStart(2, '0')}`;\n })()\n}}"
+        },
+        "options": {}
+      },
+      "id": "abd0ea54-1535-4b1f-b312-86379081e93e",
+      "name": "Fetch Emails - Past 24 Hours",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        992,
+        512
+      ],
+      "webhookId": "8c17d1be-30e1-477e-95cf-cf19e31234b7",
+      "typeVersion": 2.1,
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hz9dBCQo0ot60lCE",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Name:\n✨ AI Executive Assistant – Smart Morning Digest ✨\n\nPurpose:\nA local, AI-powered automation system that acts as a virtual executive assistant by intelligently reading emails and calendar events, identifying what truly matters, extracting actionable tasks, and prioritizing the day ahead. It generates a clean, executive-friendly morning digest that highlights urgent items, upcoming meetings, and follow-ups—helping start each day with clarity, focus, and control.",
+        "height": 1388,
+        "width": 3112
+      },
+      "id": "7fdbe160-a97c-4337-aace-c98dff993c03",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        192,
+        304
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "options": {
+          "systemMessage": "=📧 AI Email Analysis Prompt (DB-Aligned Version)\n\nYou are an AI system that analyzes full email content and produces structured, deterministic outputs for storage in a database.\n\n🎯 Objective\n\nFor each email provided, determine whether it is relevant.\nIf relevant, extract a concise understanding of the email and identify actionable tasks in a structured format suitable for persistent storage.\n\nIgnore spam, promotions emails\n🔍 Analysis Instructions\n\nFor each email:\n\nRead and understand:\n\nSender\n\nSubject\n\nFull email body (plain text or cleaned HTML)\n\nDetermine:\n\nIntent of the email\n\nWhether it requires action\n\nTime sensitivity\n\nBusiness relevance\n\nClassify the email strictly according to the schemas below.\n\n🚫 Relevance Filtering Rules\n\nIf the email is any of the following, mark it as irrelevant and return null:\n\nMarketing or promotional emails\n\nAutomated notifications with no required action\n\nSpam or unsolicited content\n\nOnly process work-related or personal emails that convey information or requests.\n\n🧾 Output Schema (STRICT)\n\nFor each relevant email, return a single JSON object matching this schema exactly:\n\n{\n  \"summary\": \"Concise 2–3 line explanation of what the email is about\",\n  \"importance\": \"low | medium | high\",\n  \"urgency\": \"today | soon | later\",\n  \"category\": \"work | personal | meeting | finance | legal | travel | other\",\n  \"action_items\": [\n    {\n      \"description\": \"Clear, specific task phrased as an action\",\n      \"due_date\": \"ISO-8601 datetime or null\",\n      \"priority\": 1\n    }\n  ],\n\"html_link\":\"https://mail.google.com/mail/u/0/#search/rfc822msgid%3A%3CBTQcF7isRFOeUuAT5TQ0rQ%40geopod-ismtpd-10%3E\"\n}\n\n🧠 Field Mapping Rules (DB-Safe)\nsummary\n\nMust be factual and neutral\n\nNo opinions or assumptions\n\nMax 3 lines\n\n➡ Stored in: emails_ai.summary\n\nimportance\n\nhigh: deadlines, approvals, legal/financial risk, blocking work\n\nmedium: requires attention but not critical\n\nlow: informational only\n\n➡ Stored in: emails_ai.importance\n\nurgency\n\ntoday: requires action within 24 hours\n\nsoon: action needed in coming days\n\nlater: no immediate action\n\n➡ Stored in: emails_ai.urgency\n\ncategory\n\nChoose exactly one:\n\nwork\n\npersonal\n\nmeeting\n\nfinance\n\nlegal\n\ntravel\n\nother\n\n➡ Stored in: emails_ai.category\n\naction_items\n\nExtract only explicit or strongly implied tasks\n\nDo NOT infer speculative actions\n\nIf no action exists, return an empty array []\n\nEach action must be executable by a human\n\nEach item maps to the tasks table.\n\n➡ Stored in: tasks.description, tasks.due_date, tasks.priority\n\nPriority rules:\n\n1 → urgent + high importance\n\n3 → normal follow-up\n\n5 → optional / low priority\n\n⚠️ Critical Constraints\n\nDo not hallucinate tasks\n\nDo not invent deadlines\n\nIf no deadline is mentioned or implied, use null\n\nOutput JSON only\nReturn strict JSON only, no markdown, no **, no comments\n\nNo explanations, no markdown, no commentary\n\n✅ Determinism Requirement\n\nGiven the same email input, the output must be consistent and repeatable."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1248,
+        848
+      ],
+      "id": "a5ccce06-8fbe-4ece-9756-91712c0e4eab",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1024,
+        848
+      ],
+      "id": "5e9a7529-d480-4aaf-86cc-bdf9fba55739",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get raw LLM output text\nconst rawText = $input.first().json.output;\n\nlet items = [];\n\ntry {\n  // Clean the text first - remove ```json and ```\n  let cleanText = rawText.trim();\n  \n  // Remove markdown code blocks\n  if (cleanText.startsWith('```json')) {\n    cleanText = cleanText.replace(/^```json\\s*/, '').replace(/\\s*```$/, '');\n  } else if (cleanText.startsWith('```')) {\n    cleanText = cleanText.replace(/^```\\s*/, '').replace(/\\s*```$/, '');\n  }\n  \n  // Fix the JSON syntax errors - remove extra closing brackets and commas\n  // The issue is there are ]}, where it should be },\n  cleanText = cleanText.replace(/\\]\\s*,\\s*\\{/g, '},{');\n  \n  // Also handle any trailing commas before closing bracket\n  cleanText = cleanText.replace(/,\\s*\\]/g, ']');\n  \n  // Parse the cleaned JSON\n  const parsed = JSON.parse(cleanText);\n  \n  if (Array.isArray(parsed)) {\n    items = parsed\n      .filter(item => item !== null)\n      .map(item => ({ json: item }));\n  } else if (parsed !== null) {\n    items = [{ json: parsed }];\n  }\n  \n} catch (parseError) {\n  console.log(`Initial parse failed: ${parseError.message}`);\n  \n  // Try a more aggressive cleanup\n  try {\n    // Extract just the array content\n    const arrayMatch = rawText.match(/\\[\\s*(\\{[\\s\\S]*\\})\\s*\\]/);\n    \n    if (arrayMatch) {\n      let arrayContent = arrayMatch[1];\n      \n      // Fix the specific syntax errors in your JSON\n      // Replace \"], {\" with just \",{\"\n      arrayContent = arrayContent.replace(/\\]\\s*,\\s*\\{/g, ',{');\n      \n      // Wrap it back in array brackets\n      const fixedJson = '[' + arrayContent + ']';\n      \n      const parsed = JSON.parse(fixedJson);\n      \n      if (Array.isArray(parsed)) {\n        items = parsed\n          .filter(item => item !== null)\n          .map(item => ({ json: item }));\n      }\n    }\n  } catch (secondError) {\n    console.log(`Second attempt also failed: ${secondError.message}`);\n    \n    // Last resort: try to extract individual objects\n    const objectMatches = rawText.match(/\\{[^{}]*\\}/g);\n    \n    if (objectMatches) {\n      for (const match of objectMatches) {\n        try {\n          const obj = JSON.parse(match);\n          if (obj && typeof obj === 'object' && obj.id) {\n            items.push({ json: obj });\n          }\n        } catch (e) {\n          // Skip invalid objects\n          continue;\n        }\n      }\n    }\n  }\n}\n\n// Return the items in n8n format\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        848
+      ],
+      "id": "0ed24d7b-97d7-4b38-976d-dad7375cdee6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "Workflow 1 - Retreiving and storing data into database",
+        "height": 256,
+        "width": 1648
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        608,
+        448
+      ],
+      "typeVersion": 1,
+      "id": "bfc49c15-a481-4c03-b486-adc8bbe5453b",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2fe8d01e-48da-4501-9884-78c12ca67341",
+              "name": "url",
+              "value": "=https://mail.google.com/mail/u/0/#search/rfc822msgid:{{$json.messageId}}",
+              "type": "string"
+            },
+            {
+              "id": "67d15cc8-178a-47f7-8efe-f76aad296dfb",
+              "name": "labelIds",
+              "value": "={{ $json.labelIds }}",
+              "type": "array"
+            },
+            {
+              "id": "8bd7878b-f4f9-4135-b4c5-fd2df35de423",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "85bf5829-ae0f-40e3-8a12-0257064643ff",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "b09a6df5-cf82-4edb-81db-75215a82c349",
+              "name": "from",
+              "value": "={{ $json.from }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        512
+      ],
+      "id": "47bf8fcd-ef2c-4919-ad64-3dd2c3cfcf0a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5e909ed-b57f-4b50-b2dd-091d536ec7ad",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f29ee1bd-4991-41fe-b462-f0e16b46a6e3",
+              "name": "summary",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "2e639176-1771-43f8-90d7-6bee917458cb",
+              "name": "start.dateTime",
+              "value": "={{ $json.start.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "6777a0e7-9a94-4f9b-be41-072a20a1360e",
+              "name": "end.dateTime",
+              "value": "={{ $json.end.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "c566936d-0477-4ab6-bf0d-37b2c9263d1b",
+              "name": "created",
+              "value": "={{ $json.created }}",
+              "type": "string"
+            },
+            {
+              "id": "56f0c659-2c59-45a7-b3ec-c0a6a4e00759",
+              "name": "description",
+              "value": "={{ $json.description || null}}",
+              "type": "string"
+            },
+            {
+              "id": "b1b4937d-1ee9-4dca-8257-41611ec65fc0",
+              "name": "htmlLink",
+              "value": "={{ $json.htmlLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1808,
+        512
+      ],
+      "id": "5b752294-30d7-457d-a443-6e89e9cf259d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "content": "Workflow 2 - Generating AI Summary and Storing them",
+        "height": 336,
+        "width": 1376
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        608,
+        784
+      ],
+      "typeVersion": 1,
+      "id": "4e71aec3-bef8-4b8f-b86e-1759c64b5ac4",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "options": {
+          "systemMessage": "=You are an AI executive assistant connected to a Postgres database. You manage emails, calendar events, and task prioritization.\n\n## INPUT SOURCES:\n1. **EMAIL SUMMARIES** - Important emails from Gmail\n2. **CALENDAR MEETINGS** - Today's scheduled meetings\n\n## PROCESSING STEPS:\n\n### STEP 1: TASK EXTRACTION & ANALYSIS\nFrom EMAILS, extract actionable tasks including:\n- Required replies/respond\n- Follow-ups needed\n- Document reviews required\n- Approvals pending\n- Deadline-driven items\n- Escalations requiring attention\n- Action items mentioned\n\nFrom MEETINGS, extract tasks including:\n- Meeting attendance requirements\n- Preparation needed before meetings\n- Decisions to make during meetings\n- Follow-ups after meetings\n- Materials to bring/share\n\n**For each extracted task, identify:**\n- Clear, concise title\n- Brief description\n- Due date/meeting time (ISO format)\n- Priority level (P1, P2, P3)\n- Source URL (message_id_url for emails, html_link for meetings)\n\n### STEP 2: PRIORITY ASSIGNMENT RULES\n**🔴 P1 (URGENT - Must act today):**\n- Deadlines due today\n- Client escalations\n- Meetings where you are presenting/hosting\n- Critical business issues\n- Time-sensitive responses\n\n**🟡 P2 (IMPORTANT - Should act today):**\n- Manager/stakeholder action items\n- Meeting preparations\n- Internal deadlines (next 2 days)\n- Team coordination tasks\n- Documentation needs\n\n**🟢 P3 (LOW - Can wait):**\n- Optional meetings\n- FYI emails (no immediate action)\n- Long-term projects\n- Informational items\n\n### STEP 3: DATABASE INSERTION (MANDATORY)\nFor EACH extracted task, use the tool **Insert rows in a table in Postgres** with EXACTLY one row per task.\n\n**Database schema mapping:**\n- `title` → Short task title (max 100 chars)\n- `description` → Brief explanation (max 250 chars)\n- `due_date` → ISO timestamp (YYYY-MM-DDTHH:MM:SS)\n- `priority` → \"P1\", \"P2\", or \"P3\"\n- `created_at` → Current timestamp in ISO format\n- `source_url` → URL to original source (message_id_url or html_link)\n\n**CRITICAL RULES:**\n- One task = One database row\n- All fields must be populated\n- No field renaming\n- No batching multiple tasks\n\n### STEP 4: HTML MORNING DIGEST GENERATION\nAfter all database inserts, generate ONLY STRICTLY HTML output with this structure and do not append anything else before and after html code:\n\n<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Morning Digest</title>\n</head>\n\n<body>\n\n<!-- CONTAINER -->\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n    <tr>\n        <td align=\"center\">\n\n            <!-- MAIN CARD -->\n            <table width=\"800\" cellpadding=\"20\" cellspacing=\"0\" border=\"0\">\n                \n                <!-- HEADER -->\n                <tr>\n                    <td align=\"center\">\n                        <h1>🌅 Morning Digest</h1>\n                        <p><strong>{{$now}}</strong></p>\n                        <hr>\n                    </td>\n                </tr>\n\n                <!-- EXTRACTED TASKS -->\n                <tr>\n                    <td>\n                        <h2>📋 Extracted Tasks & Action Items</h2>\n\n                        <!-- TASK ITEM -->\n                        <p>\n                            <strong>🔴 P1 — Review Q4 Financial Report</strong><br>\n                            Review and provide feedback before 2:00 PM.<br>\n                            ⏰ Due: 2:00 PM<br>\n                            📅 Source: Email<br>\n                            🔗 <a href=\"[SOURCE_URL]\" target=\"_blank\">Open Email</a>\n                        </p>\n\n                        <hr>\n\n                        <p>\n                            <strong>🟡 P2 — Prepare Meeting Slides</strong><br>\n                            Finalize slides for strategy review.<br>\n                            ⏰ Due: Today<br>\n                            📅 Source: Calendar<br>\n                            🔗 <a href=\"[SOURCE_URL]\" target=\"_blank\">Open Event</a>\n                        </p>\n\n                        <hr>\n\n                        <p>\n                            <strong>🟢 P3 — Read Industry Newsletter</strong><br>\n                            Optional reading when time permits.<br>\n                            📅 Source: Email<br>\n                            🔗 <a href=\"[SOURCE_URL]\" target=\"_blank\">Open Email</a>\n                        </p>\n\n                    </td>\n                </tr>\n\n                <!-- EMAIL PRIORITY SUMMARY -->\n                <tr>\n                    <td>\n                        <h2>📧 Email Priority Summary</h2>\n\n                        <h3>🔴 Urgent</h3>\n                        <p>\n                            <strong>Q4 Report Approval — Deadline Today</strong><br>\n                            Action Required: Approve or suggest revisions.<br>\n                            🔗 <a href=\"[EMAIL_LINK]\" target=\"_blank\">Open Email</a>\n                        </p>\n\n                        <h3>🟡 Important</h3>\n                        <p>\n                            <strong>Client Feedback Review</strong><br>\n                            Needs response today.<br>\n                            🔗 <a href=\"[EMAIL_LINK]\" target=\"_blank\">Open Email</a>\n                        </p>\n\n                        <h3>🟢 Low Priority</h3>\n                        <p>\n                            <strong>Newsletter: Weekly Tech Updates</strong><br>\n                            Read when available.<br>\n                            🔗 <a href=\"[EMAIL_LINK]\" target=\"_blank\">Open Email</a>\n                        </p>\n                    </td>\n                </tr>\n\n                <!-- MEETINGS -->\n                <tr>\n                    <td>\n                        <h2>📅 Today's Meetings</h2>\n\n                        <p>\n                            <strong>9:00 AM – 10:00 AM</strong><br>\n                            Executive Strategy Review<br>\n                            Preparation: Review Q4 reports<br>\n                            🔗 <a href=\"[MEETING_LINK]\" target=\"_blank\">Open Calendar Event</a>\n                        </p>\n\n                        <hr>\n\n                        <p>\n                            <strong>1:30 PM – 2:30 PM</strong><br>\n                            Marketing Sync<br>\n                            Preparation: Campaign performance notes<br>\n                            🔗 <a href=\"[MEETING_LINK]\" target=\"_blank\">Open Calendar Event</a>\n                        </p>\n                    </td>\n                </tr>\n\n                <!-- CONFLICT ALERT -->\n                <tr>\n                    <td>\n                        <h2>⚠️ Schedule Conflict</h2>\n                        <p>\n                            Email review deadline (2:00 PM) overlaps with Marketing Sync (1:30–2:30 PM).\n                        </p>\n                        <p>\n                            <strong>Recommendation:</strong> Start review earlier or reschedule meeting.\n                        </p>\n                    </td>\n                </tr>\n\n                <!-- LEGEND -->\n                <tr>\n                    <td align=\"center\">\n                        <hr>\n                        <p>\n                            🔴 P1 — Must act today &nbsp; | &nbsp;\n                            🟡 P2 — Should act today &nbsp; | &nbsp;\n                            🟢 P3 — Can wait\n                        </p>\n                    </td>\n                </tr>\n\n            </table>\n\n        </td>\n    </tr>\n</table>\n\n</body>\n</html>\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2016,
+        1296
+      ],
+      "id": "9b2fc2d3-61a5-45fa-b645-7ac1bfae13d9",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "all calendar meets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        1296
+      ],
+      "id": "9733d0b6-d4e9-4055-ab02-b48011e1f1d4",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "summary of email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1296
+      ],
+      "id": "e90e2ae0-2153-40a1-a24e-a492d5db8b3f",
+      "name": "Aggregate2",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\"all calendar meets\":$input.first().json['all calendar meets']},{\"summary of email\":$('Aggregate2').first().json['summary of email']}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        1296
+      ],
+      "id": "c9739157-8204-4657-9164-86b2f1756a8f",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1792,
+        1296
+      ],
+      "id": "86e4b98a-7089-4ca6-8f92-b081a03fe614",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "content": "Workflow 3 - Creating Task and Prioritization",
+        "height": 400,
+        "width": 2240
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        640,
+        1200
+      ],
+      "typeVersion": 1,
+      "id": "8cfdefa9-9183-4f99-be08-7f956a2d851e",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input text (adjust path if needed)\nconst text = $input.first().json.output;\n\n// Replace all newline characters with empty string\nconst cleanedText = text.replace(/\\n/g, \"\");\n\n// Return result\nreturn [\n  {\n    json: {\n      cleanedText\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2368,
+        1296
+      ],
+      "id": "1de81cc4-b34b-4fef-b750-98d81bb1f0a0",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "model": "ministral-3b-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1984,
+        1440
+      ],
+      "id": "d0da833a-af24-418a-934e-c0967610cf50",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        800,
+        512
+      ],
+      "id": "0232e92b-b6ed-4ffd-894c-9c420c2994ad",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "model": "ministral-3b-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        1008
+      ],
+      "id": "10aee431-0154-4cce-a405-b331a362e2da",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * \nFROM emails_raw\nWHERE created_at >= date_trunc('day', now() - interval '1 day')\n  AND created_at <= now();",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        800,
+        848
+      ],
+      "id": "adc002f1-f02f-45c4-85fa-6f921844975b",
+      "name": "Get emails",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * \nFROM emails_ai\nWHERE created_at >= date_trunc('day', now() - interval '1 day')\n  AND created_at <= now();",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        672,
+        1296
+      ],
+      "id": "33726cae-6b51-4856-b157-8f0a6effbe91",
+      "name": "get summary of the email",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM calendar_events\nWHERE start_time >= date_trunc('day', now())\n  AND start_time < date_trunc('day', now() + interval '1 day');\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1120,
+        1296
+      ],
+      "id": "29313360-28bb-49c2-ab58-35c54d4d3696",
+      "name": "get calendar events",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_ai",
+          "mode": "list",
+          "cachedResultName": "emails_ai"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "summary": "={{ $json.summary }}",
+            "importance": "={{ $json.importance }}",
+            "urgency": "={{ $json.urgency }}",
+            "category": "={{ $json.category }}",
+            "action_items": "={{ $json.action_items[0] }}",
+            "created_at": "={{ $now }}",
+            "message_id_url": "={{ $json.html_link }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "importance",
+              "displayName": "importance",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action_items",
+              "displayName": "action_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id_url",
+              "displayName": "message_id_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1824,
+        848
+      ],
+      "id": "d923f62d-11d8-4d3c-b655-0910cdb96033",
+      "name": "Insert summary of email in email ai table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_raw",
+          "mode": "list",
+          "cachedResultName": "emails_raw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body": "={{ $json.text }}",
+            "created_at": "={{ $now }}",
+            "labels": "={{ $json.labelIds }}",
+            "subject": "={{ $json.subject }}",
+            "sender": "={{ $json.from.value }}",
+            "message_id_url": "={{ $json.url }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "message_id_url",
+              "displayName": "message_id_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1408,
+        512
+      ],
+      "id": "53d76bd3-ae9d-4f94-872c-63737859f6dd",
+      "name": "Insert mail in a email table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "calendar_events",
+          "mode": "list",
+          "cachedResultName": "calendar_events"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_id": "={{ $json.id }}",
+            "start_time": "={{ $json.start.dateTime }}",
+            "end_time": "={{ $json.end.dateTime }}",
+            "created_at": "={{ $json.created }}",
+            "title": "={{ $json.summary }}",
+            "description": "={{ $json.description || null}}",
+            "html_link": "={{ $json.htmlLink }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "event_id",
+              "displayName": "event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_time",
+              "displayName": "start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_time",
+              "displayName": "end_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "html_link",
+              "displayName": "html_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2016,
+        512
+      ],
+      "id": "b14a5e84-f145-4f05-a71a-5bb2f158e407",
+      "name": "Insert events in a calendar table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "daily_digest",
+          "mode": "list",
+          "cachedResultName": "daily_digest"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "digest_date": "={{ $now.toISODate() }}",
+            "content": "={{ $json.cleanedText }}",
+            "generated_at": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "digest_date",
+              "displayName": "digest_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "generated_at",
+              "displayName": "generated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2592,
+        1296
+      ],
+      "id": "5b621be2-7aae-4ec7-be6b-14d444cfb5c6",
+      "name": "Insert today digest in a daily digest table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tasks",
+          "mode": "list",
+          "cachedResultName": "tasks"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "priority": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('priority', ``, 'number') }}",
+            "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('description', ``, 'string') }}",
+            "due_date": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('due_date', ``, 'string') }}",
+            "created_at": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('created_at', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2176,
+        1440
+      ],
+      "id": "deb56249-31fd-4d1a-afe1-460236880511",
+      "name": "Insert task in task table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "sparshgoyal199@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sparshgoyal199@gmail.com"
+        },
+        "returnAll": true,
+        "timeMax": "={{ $now.plus({ day: 1 }) }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1600,
+        512
+      ],
+      "id": "96b211fa-a1c6-48cc-8757-37a2216db95e",
+      "name": "next day calendar events",
+      "executeOnce": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "F2XSJhlGSiX1UdSO",
+          "name": "Google Calendar account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Fetch Emails - Past 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Insert summary of email in email ai table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert mail in a email table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Insert events in a calendar table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "get calendar events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Insert today digest in a daily digest table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Fetch Emails - Past 24 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get emails": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get summary of the email": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get calendar events": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert summary of email in email ai table": {
+      "main": [
+        [
+          {
+            "node": "get summary of the email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert mail in a email table": {
+      "main": [
+        [
+          {
+            "node": "next day calendar events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert events in a calendar table": {
+      "main": [
+        [
+          {
+            "node": "Get emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert task in task table": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "next day calendar events": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c55ba568-d42a-4b4f-a46d-2c146672e388",
+  "meta": {
+    "templateId": "5003",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e91500adc6b9d5c04c07524a89d5dd1212a1463f53b577bc9ee6ec31526e0c6a"
+  },
+  "id": "pl4ubIkg6GPQLvzu",
+  "tags": []
+}

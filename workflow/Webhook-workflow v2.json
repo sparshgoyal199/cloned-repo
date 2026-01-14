@@ -1,0 +1,604 @@
+{
+  "name": "Webhook-workflow v2",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "fa83c57d-fabf-4901-8cc2-7139d318d71e",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        1712
+      ],
+      "id": "53c2cd82-3950-47e1-82bb-3d3c579cb114",
+      "name": "Webhook",
+      "webhookId": "fa83c57d-fabf-4901-8cc2-7139d318d71e"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tasks",
+          "mode": "list",
+          "cachedResultName": "tasks"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2912,
+        1712
+      ],
+      "id": "b212084d-2490-4439-bfd1-671f82e4d51a",
+      "name": "Get Tasks",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_ai",
+          "mode": "list",
+          "cachedResultName": "emails_ai"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2944,
+        2192
+      ],
+      "id": "867f1277-758d-45e8-b38c-a182b06b2552",
+      "name": "Get emails",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Workflow 4 - Response to webhook as per  the query",
+        "height": 1360,
+        "width": 2784
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        640,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "d7468617-5792-4393-8304-ef0117f3f64d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "\"You are an intent classifier for a personal productivity assistant. Analyze the user's message and determine which task(s) they want to perform. Classify the intent into these categories:\\n1. daily_digest: User wants to generate or view their daily digest/summary\\n2. tasks: User wants to see their tasks/to-dos\\n3. important_emails: User wants to see important emails only\\n\\nAlso extract any date mentioned in the format YYYY-MM-DD. If no date is mentioned, assume today date.\\n\\nReturn your response ONLY as a JSON object with this exact structure:\\n{\\\"daily_digest\\\": boolean, \\\"tasks\\\": boolean, \\\"important_emails\\\": boolean, \\\"date\\\": \\\"string\\\"}\\n\\nExamples:\\n- User says \\\"show me my tasks for tomorrow\\\" → {\\\"daily_digest\\\": false, \\\"tasks\\\": true, \\\"important_emails\\\": false, \\\"date\\\": \\\"2024-01-15\\\"}\\n- User says \\\"give me my daily summary\\\" → {\\\"daily_digest\\\": true, \\\"tasks\\\": false, \\\"important_emails\\\": false, \\\"date\\\": \\\"\\\"}\\n- User says \\\"show important emails from yesterday\\\" → {\\\"daily_digest\\\": false, \\\"tasks\\\": false, \\\"important_emails\\\": true, \\\"date\\\": \\\"2024-01-13\\\"}\\n- User says \\\"show me my tasks and important emails\\\" → {\\\"daily_digest\\\": false, \\\"tasks\\\": true, \\\"important_emails\\\": true, \\\"date\\\": \\\"\\\"}\",\n  \n  \"response_format\": {\n    \"daily_digest\": \"boolean\",\n    \"tasks\": \"boolean\", \n    \"important_emails\": \"boolean\",\n    \"date\": \"string (YYYY-MM-DD format or empty string)\"\n  },\n  \n  \"examples\": [\n    {\n      \"user_input\": \"Can I get my daily digest?\",\n      \"ai_response\": \"{\\\"daily_digest\\\": true, \\\"tasks\\\": false, \\\"important_emails\\\": false, \\\"date\\\": \\\"\\\"}\"\n    },\n    {\n      \"user_input\": \"Show me my tasks for January 20th\",\n      \"ai_response\": \"{\\\"daily_digest\\\": false, \\\"tasks\\\": true, \\\"important_emails\\\": false, \\\"date\\\": \\\"2024-01-20\\\"}\"\n    },\n    {\n      \"user_input\": \"What are my important emails from last Friday?\",\n      \"ai_response\": \"{\\\"daily_digest\\\": false, \\\"tasks\\\": false, \\\"important_emails\\\": true, \\\"date\\\": \\\"2024-01-12\\\"}\"\n    },\n    {\n      \"user_input\": \"Give me my daily summary and tasks for today\",\n      \"ai_response\": \"{\\\"daily_digest\\\": true, \\\"tasks\\\": true, \\\"important_emails\\\": false, \\\"date\\\": \\\"\\\"}\"\n    }\n  ]"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1168,
+        1712
+      ],
+      "id": "f90aa086-58e9-4c64-b806-3d77b45a0128",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        1920
+      ],
+      "id": "891ba74d-eb05-4734-a967-b1eff924bf22",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript').item.json.daily_digest }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    },
+                    "id": "bc10aa56-2cec-4a03-b26f-b5612b7bee0d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6d277041-026e-4754-b35f-49ed7b86f0a6",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.tasks }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0925ad2-5cc3-4433-8441-1f02020f852b",
+                    "leftValue": "={{ $('Code in JavaScript').item.json.important_emails }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        2368,
+        1712
+      ],
+      "id": "b44af8b6-ec07-42b5-85e8-5b2abeb886cd",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the string output from previous node (AI Agent)\nconst raw = $input.first().json.output;\n\n// Convert string → JSON object\nconst parsed = JSON.parse(raw);\n\n// Return as n8n-compatible JSON\nreturn [\n  {\n    json: parsed\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        1712
+      ],
+      "id": "ad2ae917-1be1-4a42-9d89-1ac19f2769a9",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Aggregate').item.json.data }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2880,
+        1504
+      ],
+      "id": "91bdd679-54c0-4090-9341-4bafb11fa720",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        2752,
+        1712
+      ],
+      "id": "1229ff41-f04a-4e35-bda3-925e86244489",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Aggregate').item.json.data }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2800,
+        1952
+      ],
+      "id": "c889ab3d-fb97-4efd-a5fe-cddaf941aac7",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        2752,
+        2176
+      ],
+      "id": "ce9654ba-4d6c-44d4-bcdc-9ca4a3fce7de",
+      "name": "Mistral Cloud Chat Model3",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "wMOucmZ3n2Z9wjB8",
+          "name": "Mistral Cloud account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "666ef53a-e162-49df-ba35-0d0ce6388818",
+              "name": "query",
+              "value": "={{ $('Webhook').item.json.query }}",
+              "type": "object"
+            },
+            {
+              "id": "51f63d1e-ea6e-47eb-bf6e-e147bed765eb",
+              "name": "date",
+              "value": "={{ $json.date || $now}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1728,
+        1712
+      ],
+      "id": "9accaf3e-6f61-4fb4-9ee9-521d5ca7a52b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1936,
+        1712
+      ],
+      "id": "281b8ce8-fd11-462a-9fa4-2ae53a00ff2c",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select content\nfrom daily_digest\nwhere digest_date = DATE '{{ $json.date?.split(\"T\")[0] || $now.toISO().split(\"T\")[0] }}';\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        2576,
+        1024
+      ],
+      "id": "d53a78a1-974a-45c6-a3d8-98c245aa4574",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3de1f4d5-7c07-4866-bea4-0a5e7ebfaf13",
+              "leftValue": "={{ $json.content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2784,
+        1024
+      ],
+      "id": "009262a1-bb08-4370-bf5d-1bec1b83dd75",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "pl4ubIkg6GPQLvzu",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pl4ubIkg6GPQLvzu",
+          "cachedResultName": "Daily Email Digest with AI Summarization using Gmail, OpenRouter and LangChain copy - v2"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3056,
+        1152
+      ],
+      "id": "b94bfbe6-d48c-41eb-8163-d57c7037d13e",
+      "name": "Call 'Daily Email Digest with AI Summarization using Gmail, OpenRouter and LangChain copy - v2'1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get emails": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Call 'Daily Email Digest with AI Summarization using Gmail, OpenRouter and LangChain copy - v2'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "57c5e1f1-fbee-47b9-89f7-33e78fedf746",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e91500adc6b9d5c04c07524a89d5dd1212a1463f53b577bc9ee6ec31526e0c6a"
+  },
+  "id": "CkRcoMmuir6fquM5",
+  "tags": []
+}
