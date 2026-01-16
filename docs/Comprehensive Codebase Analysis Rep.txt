@@ -1,0 +1,137 @@
+Comprehensive Codebase Analysis Report
+Phase 1: Codebase Inventory & System Boundaries
+Repository Structure
+Root:
+AI-Executive-Assitant/: Frontend Application. Contains 
+index.html
+ (UI), 
+script.js
+ (Logic), 
+style.css
+ (Styling).
+docs/: Documentation & Schema. Contains 
+AI-Assistant-Database.sql
+ (Postgres Schema Initialization).
+workflow/: Backend Logic. Contains n8n workflow JSON exports.
+Email and calender summarizer workflow.json: Ingestion & Analysis.
+Webhook-workflow v2.json: Delivery & User Interaction.
+AI-Assitant-Executive (1).json: Deployment/Backup of ingestion logic.
+Dockerfile
+: Infrastructure. Builds a custom n8n image with workflows.
+README.md
+: Documentation. System overview and setup guide.
+System Boundaries
+Entry Points:
+User Interface: 
+AI-Executive-Assitant/index.html
+ (Browser-based).
+API/Webhook: http://localhost:5678/webhook/... (n8n entry point).
+Database: PostgreSQL (External service/container).
+Core Domains:
+Ingestion: Fetching raw data from Gmail/Calendar.
+Intelligence: LLM-based summarization, task extraction, classification.
+Core Data: Storing normalized entities (Emails, Tasks, Events).
+Delivery: Generating HTML digests and serving to UI.
+Phase 2: End-to-End Tech Stack Discovery
+Component	Technology	Usage
+Orchestration / Backend	n8n (Community Edition)	Hosts all business logic, workflows, and API endpoints. Selected for visual workflow management and ease of integration.
+Database	PostgreSQL	Primary state store for raw emails, processed tasks, and digests. Ensures decoupling between ingestion and delivery.
+Frontend	HTML5 / Vanilla JS / CSS	Lightweight UI. Uses Tailwind CSS (via CDN) for styling. Connects to n8n via standard fetch API.
+AI / LLM	Mistral AI (Cloud)	ministral-3b-latest and open-mistral-7b. Used for semantic understanding, summarization, and JSON extraction.
+Integrations	Google Workspace APIs	Gmail API (Read-only for emails), Google Calendar API (Read-only for events).
+Infrastructure	Docker	Containerization of the n8n instance (as per Dockerfile).
+Environment	Windows (Local)	Host OS as per user context.
+APIs	REST / Webhooks	Communication between Frontend and n8n.
+Phase 3: Deep Sequential Code Reading & Execution Flow
+1. Ingestion & Analysis Flow (Email and calender summarizer workflow.json)
+Trigger: Scheduled or Manual.
+Fetch: Pulls emails (last 24h) and Calendar events from Google.
+Normalize: Standardizes data into JSON objects.
+Store Raw: Inserts into emails_raw and calendar_events tables.
+AI Processing:
+Sends raw text to Mistral AI.
+Prompt: Strict JSON output for Summary, Importance, Urgency, Category, Action Items.
+Store Intelligence: Inserts structured result into emails_ai.
+Task Generation:
+Aggregates "High Importance" emails and "Today's" meetings.
+AI Agent: Deduplicates and prioritizes tasks (P1/P2/P3).
+Store: Inserts into tasks table.
+2. Delivery & Interaction Flow (Webhook-workflow v2.json + Frontend)
+User Action: User types "Show me my tasks" in 
+index.html
+.
+Request: 
+script.js
+ sends GET request to n8n Webhook.
+Intent Classification: n8n AI Agent analyzes query.
+Classes: daily_digest, tasks, important_emails.
+Extracts: 
+date
+ (defaults to today).
+Routing: Switch node directs flow based on intent.
+Daily Digest: Queries daily_digest table. If missing, triggers generation workflow. Returns HTML.
+Tasks: Queries tasks table. AI formats as HTML list.
+Emails: Queries emails_ai. AI formats as HTML summary.
+Response: n8n returns JSON/HTML.
+Render: 
+script.js
+ checks for <DOCTYPE html>, renders in iframe if present, or as chat bubble.
+Phase 4: Architecture Identification
+Architectural Style: Event-Driven / Pipeline Architecture
+
+The system relies on independent pipelines (Ingest, Process, Deliver) decoupled by a shared database ("Shared Repository" pattern).
+Tightly Coupled Logic/AI: Business logic is embedded directly in AI prompts within the orchestration layer.
+Key Patterns:
+
+Retrieval-Augmented Generation (RAG) (Lite): Fetches relevant DB rows (context) to feed LLM for answering user queries.
+** ETL (Extract, Transform, Load)**: Classic ETL pipeline for email/calendar data.
+Webhooks: Asynchronous communication pattern for UI-Backend interaction.
+Phase 5: High-Level Design (HLD)
+Data Layer
+External Services
+HTTP/Webhook
+Fetch
+Fetch
+Inference
+R/W Raw Data
+R/W Tasks/Summaries
+User / Browser
+n8n Backend Engine
+Gmail API
+Google Calendar API
+Mistral AI Cloud
+PostgreSQL DB
+Deployment View:
+
+Local Machine:
+Frontend (Static Files)
+Postgres Container/Service
+n8n Container (exposed on port 5678)
+Phase 6: Low-Level Design (LLD)
+Database Schema (Key Tables)
+emails_raw: 
+id
+, message_id, body, sender, created_at.
+emails_ai: 
+id
+, summary, importance, urgency, action_items (JSON), message_id_url.
+tasks: 
+id
+, description, due_date, priority (P1-P3).
+daily_digest: 
+id
+, digest_date, content (HTML blob).
+Critical Logic (
+script.js
+)
+Function: 
+handleSendMessage()
+Mechanism: Disables input -> Appends user msg -> Adds "Thinking..." loader -> Fetches Webhook -> Parses JSON/Text -> Renders HTML iframe or Text -> Re-enables input.
+Error Handling: Basic try-catch on fetch, displays error message in chat.
+Critical Logic (n8n AI Prompts)
+Strict JSON Enforcement: Prompts explicitly forbid Markdown and demand specific JSON schemas to ensure database insert compatibility.
+Sanitization: Javascript nodes (Code in JavaScript) use Regex to strip Markdown fences (```json) from LLM responses before parsing.
+Risks & Assumptions
+Assumption: The user has valid API keys for Mistral and Google configured in n8n credentials (not visible in code exports).
+Risk: "Hallucination" in JSON structure by LLM could break the JSON.parse nodes despite Regex cleanup.
+Ambiguity: The exact triggering mechanism for the Ingestion workflow (Cron vs Manual) is configured in n8n UI settings, not explicitly visible in the JSON node structure (unless trigger node is present, which was implicit).

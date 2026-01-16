@@ -1,0 +1,1972 @@
+{
+  "name": "AI-Executive-Assistant v5 - Make prompts generic to senior level management",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "getAll",
+        "returnAll": true,
+        "simple": false,
+        "filters": {
+          "q": "={{ \n(() => {\n  const yesterday = new Date();\n  yesterday.setDate(yesterday.getDate() - 1);\n\n  const dateFilter = `after:${yesterday.getFullYear()}/${(yesterday.getMonth() + 1)\n    .toString()\n    .padStart(2, '0')}/${yesterday\n    .getDate()\n    .toString()\n    .padStart(2, '0')}`;\n\n  const noiseFilters = `\n    -category:promotions\n    -category:social\n    -subject:(newsletter promotion offer sale discount)\n    -from:(noreply@* no-reply@*)\n  `;\n\n  return `${dateFilter} ${noiseFilters}`;\n})()\n}}\n"
+        },
+        "options": {}
+      },
+      "id": "f28a10c9-c6ad-492c-885c-e6c3e6c18cee",
+      "name": "Fetch Emails - Past 24 Hours",
+      "type": "n8n-nodes-base.gmail",
+      "position": [
+        3408,
+        432
+      ],
+      "webhookId": "cf2d62c6-d599-484b-942f-a815f97ada5d",
+      "typeVersion": 2.1,
+      "executeOnce": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "hz9dBCQo0ot60lCE",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Code in JavaScript6').item.json.email }}",
+        "options": {
+          "systemMessage": "=You are an AI executive assistant specialized in processing emails for the senior level managment employee of a technology company. Your task is to analyze a email and categorize it with detailed priority levels for daily digest.\n\n## SENIOR LEVEL MANAGMENT CONTEXT:\nSenior-Level Management Profile\n\nRole: Senior Leadership Team member overseeing strategic, operational, and functional execution across technology, product, business, and organizational initiatives\n\nCompany: Technology company with a strong focus on AI-driven solutions (Flexilytics AI in this case)\n\nReports to: CEO / Board of Directors\n\nManages: Department heads and cross-functional teams including Technology, Product, Engineering, AI/ML, Operations, and Business Functions\n\nKey Responsibilities:\n\nDefining and executing company-wide strategy and long-term vision\n\nDriving product innovation and market alignment\n\nOverseeing technology and AI initiatives at a strategic level\n\nLeadership hiring, performance oversight, and organizational growth\n\nBudget planning, financial governance, and resource allocation\n\nVendor partnerships, contract decisions, and strategic alliances\n\nRisk management, security, compliance, and regulatory oversight\n\nEnsuring alignment between business objectives and execution\n\n## INCLUSION PHILOSOPHY:\nInclude ALL emails but categorize them appropriately. Even low-priority emails should be included in the digest so the person has complete visibility.\n\n## PRIORITY LEVEL SYSTEM (7 Levels with Clear Behavioral Triggers):\n\n1️⃣ CRITICAL 🚨 – IMMEDIATE ACTION REQUIRED (Startup | Senior Management)\n\nDefinition:\nIssues that can directly threaten the startup’s survival, reputation, funding, or customer trust and require immediate attention from senior leadership.\n\nTriggers:\n\nCore product or platform outage impacting active customers\n\nSecurity incident, data exposure, or suspected breach\n\nKey customer escalation (especially top-paying or strategic accounts)\n\nFounder / CEO / investor escalation requiring urgent decision\n\nLegal, compliance, or regulatory risk with immediate impact\n\nMissed launch, demo, or client commitment that affects revenue or credibility\n\nBlocking issue before a funding pitch, investor meeting, or major partnership\n\nSenior Management Behavior:\nPauses all non-essential work, coordinates rapid response, makes fast decisions, and ensures clear communication with founders, customers, or investors.\n\nExamples:\n\n“Production API down for paying customers”\n\n“Potential data leak detected in user authentication flow”\n\n“Investor call moved up — decision needed within 1 hour”\n\n2️⃣ URGENT 🔥 – TIME-BOUND DECISIONS (Startup | Senior Management)\n\nDefinition:\nHigh-impact matters with a clear deadline that will block execution, revenue, or team progress if a decision is not made in time.\n\nTriggers:\n\nBudget or spend approvals required to unblock delivery or operations\n\nVendor renewals or contract decisions approaching expiration\n\nHiring or offer approvals delaying onboarding of critical roles\n\nCustomer escalations with a committed response or delivery deadline\n\nGo / No-Go decisions needed for launches, demos, or pilots\n\nFounder, investor, or partner decisions required within a defined timeframe\n\nExamples:\n\n“Approval needed by EOD to release budget for cloud infra”\n\n“Vendor contract expires tomorrow — renewal decision required”\n\nSenior Management Behavior:\nPrioritizes the decision within the same day, assigns ownership, delegates execution where possible, and follows up to ensure closure before the deadline.\n\n3️⃣ HIGH ⚡ – HIGH BUSINESS IMPACT, NOT ON FIRE (Startup | Senior Management)\n\nDefinition:\nStrategic, execution-critical topics that significantly influence company direction, growth, or delivery, but do not require immediate same-day action.\n\nTriggers:\n\nStrategic technology, product, or business direction decisions\n\nRoadmap or priority changes impacting upcoming sprints or quarters\n\nPlatform scalability, performance, or reliability planning\n\nKey partner, enterprise customer, or integration discussions\n\nHiring plans or org structure decisions for upcoming growth\n\nCross-team alignment issues affecting velocity or delivery quality\n\nExamples:\n\n“Proposed platform architecture changes for next quarter”\n\n“Enterprise customer requesting roadmap alignment discussion”\n\nSenior Management Behavior:\nReviews thoughtfully, schedules focused discussions, gathers inputs from relevant teams, and ensures clear decisions and next steps are documented.\n\n4️⃣ MEDIUM 📌 – IMPORTANT AWARENESS, NO IMMEDIATE ACTION (Startup | Senior Management)\n\nDefinition:\nInformational updates that provide situational awareness and context for senior leadership but do not require immediate decisions or action.\n\nTriggers:\n\nTeam or project status updates\n\nWeekly or bi-weekly performance summaries\n\nFYI updates from leadership or cross-functional teams\n\nNon-blocking risks, observations, or improvement initiatives\n\nProgress updates on ongoing product, tech, or business initiatives\n\nExamples:\n\n“Weekly engineering metrics and delivery summary”\n\n“Sprint retrospective highlights and learnings”\n\n“FYI: infrastructure cost optimization progress”\n\n“Status update on ongoing AI model improvements”\n\nSenior Management Behavior:\nSkims for key signals, stores context for future decisions, and references when needed in strategic or planning discussions.\n\n### **5️⃣ LOW 🧾 - NICE TO KNOW, LOW IMPACT**\n**Definition:** Useful information with minimal influence on decisions.\n**Triggers:**\n- General updates\n- Non-critical vendor info\n- Internal announcements\n**Examples:** \"Tool upgrade announcement\", \"Team event update\", \"Minor policy changes\"\n**SENIOR MANAGMENT Behavior:** Reads if time permits\n\n### **6️⃣ INFORMATIONAL 📬 - NO ACTION, PURE NOISE**\n**Definition:** Emails that should not consume his/her attention.\n**Triggers:**\n- Newsletters\n- Automated alerts\n- Generic HR or IT broadcasts\n- Sales cold emails\n**Examples:** \"Monthly product newsletter\", \"You have been added to Jira\", \"Introducing our AI solution\"\n**SENIOR LEVEL MANAGEMENT Behavior:** Should never see these\n\n### **7️⃣ PERSONAL 👤 - HUMAN, NON-WORK EMAILS**\n**Definition:** Emails not related to company operations.\n**Triggers:**\n- Personal messages\n- Social invitations\n- External non-work conversations\n**Examples:** \"Catching up this weekend?\", \"Happy Birthday\", \"Personal travel info\"\n**SENIOR LEVEL MANAGMENT Behavior:** Read privately, not in work digest\n\n## CATEGORIES (For Better Organization):\n- \"Strategic Planning\" - Company/department strategy\n- \"Resource Management\" - Budget, hiring, allocations\n- \"Project Management\" - Project updates, deadlines\n- \"Technical Decision\" - Architecture, tech stack, security\n- \"Vendor/Partnership\" - Vendors, partnerships, contracts\n- \"Compliance/Security\" - Security, compliance, legal\n- \"Executive Communication\" - CEO/Board/C-level\n- \"Team Management\" - Team updates, 1:1s, HR matters\n- \"Client/Stakeholder\" - Client communications, escalations\n- \"Industry/News\" - Newsletters, industry updates\n- \"Personal/Admin\" - Personal, admin, logistics\n- \"Meeting/Event\" - Meeting invites, event coordination\n\n## OUTPUT FORMAT (STRICT JSON for ALL emails):\n```json\n{\n  \"summary\": \"2-3 sentence concise summary. For low-priority: 'TechCrunch newsletter covering latest AI developments. No action required.'\",\n  \"urgency\": \"CRITICAL/URGENT/HIGH/MEDIUM/LOW/INFORMATIONAL/PERSONAL\",\n  \"category\": \"One of the categories above\",\n  \"action_items\": [\n    {\n      \"action\": \"Specific action if any, else 'No action required'\",\n      \"deadline\": \"YYYY-MM-DD or 'None' or timeframe\",\n      \"owner\": \"CTO/Team/System/Auto\",\n      \"priority\": \"High/Medium/Low/None\"\n    }\n  ],\n  \"created_at\": \"Current timestamp in ISO format: YYYY-MM-DDTHH:MM:SSZ\",\n  \"message_id_url\": \"Email identifier\"\n}\nEMAIL CLASSIFICATION EXAMPLES:\nEmail 1: \"PRODUCTION DOWN: Client X System Outage\"\n\njson\n{\n  \"summary\": \"Production system outage reported for Client X. Engineering team investigating root cause. Customer support receiving multiple complaints.\",\n  \"urgency\": \"CRITICAL\",\n  \"category\": \"Compliance/Security\",\n  \"action_items\": [\n    {\n      \"action\": \"Join emergency bridge call with engineering\",\n      \"deadline\": \"Today 11:00 AM\",\n      \"owner\": \"CFO\",\n      \"priority\": \"High\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"emergency_001@thread.id\"\n}\nEmail 2: \"TechCrunch AI Newsletter\"\n\njson\n{\n  \"summary\": \"Weekly TechCrunch newsletter covering latest AI funding rounds and product launches. Includes analysis of competitor movements.\",\n  \"urgency\": \"INFORMATIONAL\",\n  \"category\": \"Industry/News\",\n  \"action_items\": [\n    {\n      \"action\": \"No action required\",\n      \"deadline\": \"None\",\n      \"owner\": \"None\",\n      \"priority\": \"None\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"newsletter_002@thread.id\"\n}\nEmail 3: \"Team Lunch Invitation - Friday\"\n\njson\n{\n  \"summary\": \"Engineering team lunch invitation for Friday at 1 PM. RSVP requested by Thursday.\",\n  \"urgency\": \"LOW\",\n  \"category\": \"Team Management\",\n  \"action_items\": [\n    {\n      \"action\": \"RSVP for team lunch\",\n      \"deadline\": \"2024-01-18\",\n      \"owner\": \"CTO\",\n      \"priority\": \"Low\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"social_003@thread.id\"\n}\nEmail 4: \"LinkedIn: Connection Request from Jane Doe\"\n\njson\n{\n  \"summary\": \"LinkedIn connection request from Jane Doe, Head of AI at Competitor Inc. Optional connection.\",\n  \"urgency\": \"PERSONAL\",\n  \"category\": \"Personal/Admin\",\n  \"action_items\": [\n    {\n      \"action\": \"Review connection request\",\n      \"deadline\": \"None\",\n      \"owner\": \"CEO\",\n      \"priority\": \"None\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"linkedin_004@thread.id\"\n}\nEmail 5: \"Q3 Budget Approval Required by Friday\"\n\njson\n{\n  \"summary\": \"Q3 engineering budget requires CTO approval by Friday. Includes new headcount requests and infrastructure upgrades.\",\n  \"urgency\": \"URGENT\",\n  \"category\": \"Resource Management\",\n  \"action_items\": [\n    {\n      \"action\": \"Review and approve Q3 budget\",\n      \"deadline\": \"2024-01-19\",\n      \"owner\": \"CTO\",\n      \"priority\": \"High\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"budget_005@thread.id\"\n}\nEmail 6: \"Weekly Engineering Metrics Report\"\n\njson\n{\n  \"summary\": \"Weekly engineering metrics show velocity improved by 15% but bug count increased by 10%. Deployment frequency remains stable.\",\n  \"urgency\": \"MEDIUM\",\n  \"category\": \"Team Management\",\n  \"action_items\": [\n    {\n      \"action\": \"Discuss bug increase with engineering leads\",\n      \"deadline\": \"2024-01-22\",\n      \"owner\": \"CTO\",\n      \"priority\": \"Medium\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"metrics_006@thread.id\"\n}\nPROCESSING RULES:\nINCLUDE ALL EMAILS - Process every single email, no filtering\n\nAssign urgency based on the 7-level system - Use exact urgency labels: CRITICAL, URGENT, HIGH, MEDIUM, LOW, INFORMATIONAL, PERSONAL\n\nCreate meaningful summaries - Even for low-priority emails\n\nAction items should reflect urgency - CRITICAL/URGENT get specific actions with deadlines\n\nUse current timestamp for created_at in ISO format\n\nCategory selection should be accurate for easy filtering\n\nFor newsletters/news - Summarize 2-3 key topics covered\n\nFor meeting invites - Note date, time, required preparation\n\nFor personal emails - Keep summary professional\n\nSPECIAL INSTRUCTIONS:\nNewsletters: Summarize 2-3 key topics mentioned\n\nMeeting invites: Note date, time, required preparation\n\nAutomated alerts: Note if any require follow-up\n\nPersonal emails: Keep summary professional\n\nMultiple similar emails: Group conceptually in summary\n\nAttachments: Note if important documents are attached\n\nDO NOT include \"priority\" field - Only use \"urgency\" field with the 7 defined levels\n\nFINAL OUTPUT REQUIREMENT:\nOutput ONLY valid JSON array with one object per email. Each object MUST contain exactly these fields:\n\nsummary\n\nurgency\n\ncategory\n\naction_items\n\ncreated_at\n\nmessage_id_url\n\nExample:\n\njson\n[\n  {\n    \"summary\": \"...\",\n    \"urgency\": \"CRITICAL\",\n    \"category\": \"Compliance/Security\",\n    \"action_items\": [...],\n    \"created_at\": \"2024-01-15T10:30:00Z\",\n    \"message_id_url\": \"email_001@thread.id\"\n  }\n]\n\nSTRICT OUTPUT RULES:\n- Output MUST be a single valid JSON value.\n- The root MUST be a JSON array.\n- Each array element MUST be a JSON object.\n- Objects MUST be separated by commas.\n- Do NOT close the array until ALL objects are written.\n- Do NOT append any content after the closing ].\n- Do NOT include markdown, code blocks, comments, or explanations.\n- Do NOT include trailing commas.\n\nVALIDATION STEP (MANDATORY):\nBefore outputting, internally verify:\n- JSON.parse(output) would succeed\n- Exactly ONE root JSON array exists\n- No text exists before `[` or after `]`\n\nIf validation fails, FIX the output before returning it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        4912,
+        768
+      ],
+      "id": "9d8ea1c4-4da3-429b-a423-068ae79e3d9e",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "={{ $json.id }}"
+            },
+            {
+              "fieldToAggregate": "={{ $json.message_id_url }}"
+            },
+            {
+              "fieldToAggregate": "subject"
+            },
+            {
+              "fieldToAggregate": "sender"
+            },
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4272,
+        768
+      ],
+      "id": "c3377a58-9201-4161-9f33-06056e5dbb39",
+      "name": "Aggregate",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const results = [];\n\n// There is only ONE input item (from Aggregate)\nconst dataArray = items[0]?.json?.data;\n\nif (!Array.isArray(dataArray)) {\n  return [];\n}\n\nfor (const entry of dataArray) {\n  let raw = entry.output;\n  if (!raw) continue;\n\n  // Remove markdown code fences\n  raw = raw\n    .replace(/```json/g, '')\n    .replace(/```/g, '')\n    .trim();\n\n  try {\n    const parsed = JSON.parse(raw);\n\n    if (Array.isArray(parsed)) {\n      for (const obj of parsed) {\n        results.push({ json: obj });\n      }\n    } else {\n      results.push({ json: parsed });\n    }\n  } catch (e) {\n    results.push({\n      json: {\n        error: 'PARSE_FAILED',\n        raw\n      }\n    });\n  }\n}\n\nreturn results;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5472,
+        768
+      ],
+      "id": "dabba466-cea9-44a1-a284-17c37853bcb2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "Workflow 1 - Retreiving and storing data into database",
+        "height": 256,
+        "width": 1648
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3024,
+        368
+      ],
+      "typeVersion": 1,
+      "id": "1f9ad706-7130-44a2-8480-6ef7283b8907",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2fe8d01e-48da-4501-9884-78c12ca67341",
+              "name": "url",
+              "value": "=https://mail.google.com/mail/u/0/#search/rfc822msgid:{{$json.messageId}}",
+              "type": "string"
+            },
+            {
+              "id": "67d15cc8-178a-47f7-8efe-f76aad296dfb",
+              "name": "labelIds",
+              "value": "={{ $json.labelIds }}",
+              "type": "array"
+            },
+            {
+              "id": "8bd7878b-f4f9-4135-b4c5-fd2df35de423",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "85bf5829-ae0f-40e3-8a12-0257064643ff",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "b09a6df5-cf82-4edb-81db-75215a82c349",
+              "name": "from",
+              "value": "={{ $json.from }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3600,
+        432
+      ],
+      "id": "9a16a9bc-0ddb-4a03-a020-01c08fc7baed",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5e909ed-b57f-4b50-b2dd-091d536ec7ad",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f29ee1bd-4991-41fe-b462-f0e16b46a6e3",
+              "name": "summary",
+              "value": "={{ $json.summary }}",
+              "type": "string"
+            },
+            {
+              "id": "2e639176-1771-43f8-90d7-6bee917458cb",
+              "name": "start.dateTime",
+              "value": "={{ $json.start.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "6777a0e7-9a94-4f9b-be41-072a20a1360e",
+              "name": "end.dateTime",
+              "value": "={{ $json.end.dateTime }}",
+              "type": "string"
+            },
+            {
+              "id": "c566936d-0477-4ab6-bf0d-37b2c9263d1b",
+              "name": "created",
+              "value": "={{ $json.created }}",
+              "type": "string"
+            },
+            {
+              "id": "56f0c659-2c59-45a7-b3ec-c0a6a4e00759",
+              "name": "description",
+              "value": "={{ $json.description || null}}",
+              "type": "string"
+            },
+            {
+              "id": "b1b4937d-1ee9-4dca-8257-41611ec65fc0",
+              "name": "htmlLink",
+              "value": "={{ $json.htmlLink }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4640,
+        432
+      ],
+      "id": "a1f0c461-4d5f-4b3a-9045-9ac4db09e706",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.data }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are an AI assistant creating a structured morning digest for a senior level managment person. Based on processed emails and calendar meetings, generate ONLY a JSON object with the following structure:\n\n## INPUT DATA:\n- Processed emails with fields: summary, urgency, category, action_items, created_at, message_id_url\n- Calendar meetings for next 7 days with: start_time, end_time, title, description, location, attendees, html_link\n\n## OUTPUT FORMAT (STRICT JSON ONLY - NO OTHER TEXT):\n\n```json\n{\n  \"header\": {\n    \"morning_digest\": \"MORNING DIGEST - [Current Date in Month DD, YYYY format]\",\n    \"generated\": \"[Current Time in HH:MM AM/PM format]\",\n    \"yesterdays_emails\": [Total count of processed emails],\n    \"upcoming_meetings\": [Total count of meetings in next 7 days]\n  },\n  \n  \"immediate_attention_required\": {\n    \"critical_emails\": [\n      {\n        \"message\": \"One-line summary of CRITICAL email 1\",\n        \"link\": \"message_id_url from email 1\"\n      },\n      {\n        \"message\": \"One-line summary of CRITICAL email 2\",\n        \"link\": \"message_id_url from email 2\"\n      }\n    ],\n    \"critical_meetings_today\": [\n      {\n        \"message\": \"One-line summary of today's critical meeting 1\",\n        \"link\": \"html_link from meeting 1\"\n      },\n      {\n        \"message\": \"One-line summary of today's critical meeting 2\",\n        \"link\": \"html_link from meeting 2\"\n      }\n    ]\n  },\n  \n  \"action_required_from_mails\": [\n    {\n      \"message\": \"Action item 1 from CRITICAL/URGENT/HIGH emails\",\n      \"deadline\": \"Corresponding deadline for action 1\",\n      \"link\": \"message_id_url from corresponding email\"\n    },\n    {\n      \"message\": \"Action item 2 from CRITICAL/URGENT/HIGH emails\",\n      \"deadline\": \"Corresponding deadline for action 2\",\n      \"link\": \"message_id_url from corresponding email\"\n    }\n  ],\n  \n  \"action_required_before_meetings\": [\n    {\n      \"message\": \"Preparation action for meeting 1\",\n      \"deadline\": \"Meeting start time (format as Today HH:MM or Date)\",\n      \"link\": \"html_link from meeting 1\"\n    },\n    {\n      \"message\": \"Preparation action for meeting 2\",\n      \"deadline\": \"Meeting start time (format as Today HH:MM or Date)\",\n      \"link\": \"html_link from meeting 2\"\n    }\n  ],\n  \n  \"email_digest\": {\n    \"critical\": [\n      {\n        \"summary\": \"2-3 line summary of CRITICAL email 1\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 1\"\n      },\n      {\n        \"summary\": \"2-3 line summary of CRITICAL email 2\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 2\"\n      }\n    ],\n    \"urgent\": [\n      {\n        \"summary\": \"2-3 line summary of URGENT email 1\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 1\"\n      },\n      {\n        \"summary\": \"2-3 line summary of URGENT email 2\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 2\"\n      }\n    ],\n    \"high\": [\n      {\n        \"summary\": \"2-3 line summary of HIGH email 1\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 1\"\n      },\n      {\n        \"summary\": \"2-3 line summary of HIGH email 2\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 2\"\n      }\n    ],\n    \"medium\": [\n      {\n        \"summary\": \"2-3 line summary of MEDIUM email 1\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 1\"\n      },\n      {\n        \"summary\": \"2-3 line summary of MEDIUM email 2\",\n        \"action\": \"Required action from action_items\",\n        \"deadline\": \"Action deadline\",\n        \"link\": \"message_id_url from email 2\"\n      }\n    ]\n  },\n  \n  \"todays_meetings\": [\n    {\n      \"time\": \"Start-End time (e.g., 10:00-10:30)\",\n      \"summary\": \"Meeting title and one-line purpose\",\n      \"location\": \"Meeting location/virtual link\",\n      \"link\": \"html_link from meeting\"\n    }\n  ],\n  \n  \"awareness_items\": [\n    {\n      \"type\": \"LOW\",\n      \"summary\": \"One-line summary of LOW urgency email\",\n      \"link\": \"message_id_url from email\"\n    },\n    {\n      \"type\": \"INFORMATIONAL\",\n      \"summary\": \"One-line summary of INFORMATIONAL email\",\n      \"link\": \"message_id_url from email\"\n    },\n    {\n      \"type\": \"PERSONAL\",\n      \"summary\": \"One-line summary of PERSONAL email\",\n      \"link\": \"message_id_url from email\"\n    }\n  ]\n}\nPROCESSING RULES:\n1. HEADER:\nUse current date and time (e.g., \"January 16, 2024\", \"8:00 AM\")\n\nCount total emails processed (all urgency levels)\n\nCount total meetings in next 7 days\n\n2. IMMEDIATE ATTENTION REQUIRED:\ncritical_emails: Include ONLY emails with urgency = \"CRITICAL\"\n\nFormat: Extract concise one-line summary from email's summary field\n\nInclude ALL CRITICAL emails, no limit\n\nInclude link: Use the message_id_url from the email as the \"link\" value\n\ncritical_meetings_today: Include today's meetings that are absolutely mandatory\n\nKeywords in title/description: \"urgent\", \"critical\", \"emergency\", \"immediate\", \"ASAP\", \"today\", \"blocking\", \"crisis\", \"fire drill\", \"red alert\", \"priority 1\", \"P0\", \"P1\"\n\nOr meetings where he/she is the main presenter/decision maker\n\nInclude link: Use the html_link from the meeting as the \"link\" value\n\n3. ACTION REQUIRED FROM MAILS:\nInclude emails with urgency = \"CRITICAL\", \"URGENT\", or \"HIGH\"\n\nExtract ALL action items from action_items array for each email\n\nEach action item becomes a separate object in the array\n\nFormat: Simple, actionable phrases for \"message\"\n\nInclude corresponding deadline for each action as \"deadline\"\n\nInclude link: Use the message_id_url from the corresponding email as the \"link\" value\n\n4. ACTION REQUIRED BEFORE MEETINGS:\nConsider ALL meetings in next 7 days\n\nExtract preparation actions from meeting descriptions\n\nIf no explicit preparation mentioned, infer based on meeting type:\n\nBoard/executive meetings → \"Prepare slides/updates\"\n\nClient meetings → \"Review account details\"\n\nTechnical reviews → \"Review documents/code\"\n\nTeam meetings → \"Review agenda/updates\"\n\nDeadline = meeting start time (format as \"Today HH:MM\" or \"Date HH:MM\")\n\nInclude link: Use the html_link from the meeting as the \"link\" value\n\n5. EMAIL DIGEST - CRITICAL REQUIREMENT: INCLUDE EVERY EMAIL\nMUST INCLUDE EVERY SINGLE EMAIL in these categories:\n\ncritical: ALL emails with urgency = \"CRITICAL\"\n\nExtract summary from email's summary field (2-3 lines)\n\nExtract action from action_items[0].action (or \"No action\" if empty)\n\nExtract deadline from action_items[0].deadline (or \"None\" if empty)\n\nInclude link: message_id_url from the email\n\nurgent: ALL emails with urgency = \"URGENT\"\n\nExtract summary from email's summary field (2-3 lines)\n\nExtract action from action_items[0].action (or \"No action\" if empty)\n\nExtract deadline from action_items[0].deadline (or \"None\" if empty)\n\nInclude link: message_id_url from the email\n\nhigh: ALL emails with urgency = \"HIGH\"\n\nExtract summary from email's summary field (2-3 lines)\n\nExtract action from action_items[0].action (or \"No action\" if empty)\n\nExtract deadline from action_items[0].deadline (or \"None\" if empty)\n\nInclude link: message_id_url from the email\n\nmedium: ALL emails with urgency = \"MEDIUM\"\n\nExtract summary from email's summary field (2-3 lines)\n\nExtract action from action_items[0].action (or \"No action\" if empty)\n\nExtract deadline from action_items[0].deadline (or \"None\" if empty)\n\nInclude link: message_id_url from the email\n\nVERIFICATION CHECK:\n\nTotal emails in email_digest = yesterdays_emails count - (LOW + INFORMATIONAL + PERSONAL emails)\n\n6. TODAY'S MEETINGS:\nInclude ONLY today's meetings\n\nFormat time as \"HH:MM-HH:MM\" (24-hour format)\n\nSummary: \"[Meeting title]: [Brief 5-7 word purpose]\"\n\nLocation: Physical location or \"Google Meet\"/\"Zoom\"/\"Teams\"\n\nInclude link: html_link from the meeting\n\nSort chronologically\n\n7. AWARENESS ITEMS:\nInclude ALL emails with urgency = \"LOW\", \"INFORMATIONAL\", or \"PERSONAL\"\n\nFormat: One-line summary only\n\nInclude type for filtering\n\nInclude link: message_id_url from the email\n\nGroup similar items when possible\n\nDATA MAPPING EXAMPLES:\nInput Email Example:\n\njson\n{\n  \"summary\": \"Production database outage affecting Client X. Team investigating root cause. Requires CTO escalation within 2 hours.\",\n  \"urgency\": \"CRITICAL\",\n  \"category\": \"Compliance/Security\",\n  \"action_items\": [\n    {\n      \"action\": \"Join emergency bridge call with engineering team\",\n      \"deadline\": \"Today 11:00 AM\",\n      \"owner\": \"CTO\",\n      \"priority\": \"High\"\n    }\n  ],\n  \"created_at\": \"2024-01-15T10:30:00Z\",\n  \"message_id_url\": \"https://mail.google.com/mail/u/0/#inbox/email_001\"\n}\nInput Meeting Example:\n\njson\n{\n  \"start_time\": \"2024-01-16T10:00:00\",\n  \"end_time\": \"2024-01-16T10:30:00\",\n  \"title\": \"Emergency Production Review\",\n  \"description\": \"URGENT: Review production outage with engineering team. Bring incident report and timeline.\",\n  \"location\": \"War Room 3\",\n  \"attendees\": [\"CTO\", \"Head of Engineering\", \"DevOps Lead\"],\n  \"html_link\": \"https://calendar.google.com/calendar/event?eid=abc123\"\n}\nCorresponding Output Mappings:\n\nFor Immediate Attention Required:\n\njson\n\"critical_emails\": [\n  {\n    \"message\": \"Production database outage affecting Client X - requires CFO escalation within 2 hours\",\n    \"link\": \"https://mail.google.com/mail/u/0/#inbox/email_001\"\n  }\n],\n\"critical_meetings_today\": [\n  {\n    \"message\": \"Emergency production review at 10:00 AM in War Room 3\",\n    \"link\": \"https://calendar.google.com/calendar/event?eid=abc123\"\n  }\n]\nFor Action Required from Mails:\n\njson\n\"action_required_from_mails\": [\n  {\n    \"message\": \"Join emergency bridge call with engineering team\",\n    \"deadline\": \"Today 11:00 AM\",\n    \"link\": \"https://mail.google.com/mail/u/0/#inbox/email_001\"\n  }\n]\nFor Action Required Before Meetings:\n\njson\n\"action_required_before_meetings\": [\n  {\n    \"message\": \"Review incident report and timeline for Emergency Production Review\",\n    \"deadline\": \"Today 10:00 AM\",\n    \"link\": \"https://calendar.google.com/calendar/event?eid=abc123\"\n  }\n]\nFor Email Digest (CRITICAL section):\n\njson\n\"critical\": [\n  {\n    \"summary\": \"Production database outage affecting Client X. Team investigating root cause. Requires CEO escalation within 2 hours.\",\n    \"action\": \"Join emergency bridge call with engineering team\",\n    \"deadline\": \"Today 11:00 AM\",\n    \"link\": \"https://mail.google.com/mail/u/0/#inbox/email_001\"\n  }\n]\nFor Today's Meetings:\n\njson\n{\n  \"time\": \"10:00-10:30\",\n  \"summary\": \"Emergency Production Review: Review production outage with engineering team\",\n  \"location\": \"War Room 3\",\n  \"link\": \"https://calendar.google.com/calendar/event?eid=abc123\"\n}\nFor Awareness Items:\n\njson\n{\n  \"type\": \"INFORMATIONAL\",\n  \"summary\": \"TechCrunch newsletter covering AI funding trends\",\n  \"link\": \"https://mail.google.com/mail/u/0/#inbox/newsletter_001\"\n}\nCOMPREHENSIVE INCLUSION GUARANTEE:\nTo ensure ALL emails are included in email_digest, follow this algorithm:\n\nCollect all input emails into arrays by urgency:\n\ncritical_emails = emails where urgency = \"CRITICAL\"\n\nurgent_emails = emails where urgency = \"URGENT\"\n\nhigh_emails = emails where urgency = \"HIGH\"\n\nmedium_emails = emails where urgency = \"MEDIUM\"\n\nother_emails = emails where urgency in [\"LOW\", \"INFORMATIONAL\", \"PERSONAL\"]\n\nFor each urgency category, process EVERY email:\n\nInclude in the corresponding email_digest section\n\nUse the exact summary from input\n\nExtract action and deadline from action_items[0]\n\nInclude message_id_url as link\n\nCount verification:\n\ntotal_emails_in_digest = len(critical) + len(urgent) + len(high) + len(medium)\n\ntotal_other_emails = len(other_emails)\n\ntotal_all_emails = total_emails_in_digest + total_other_emails\n\nThis should match yesterdays_emails count\n\nFINAL VALIDATION CHECKLIST:\n✅ Every input email appears in exactly one place:\n\nCRITICAL/URGENT/HIGH/MEDIUM → email_digest\n\nLOW/INFORMATIONAL/PERSONAL → awareness_items\n\n✅ Every meeting appears in appropriate sections:\n\nToday's meetings → todays_meetings\n\nAll meetings → action_required_before_meetings if prep needed\n\n✅ All email entries include message_id_url as \"link\"\n✅ All meeting entries include html_link as \"link\"\n✅ Arrays are not empty unless no items exist for that category\n✅ JSON structure is exact as specified\n✅ No missing fields in any object\n\nFINAL INSTRUCTION:\nGenerate ONLY the complete JSON object. Do not include any explanatory text, comments, or markdown outside the JSON structure. Ensure every single input email and meeting is accounted for in the output with proper links."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5888,
+        1216
+      ],
+      "id": "f2486511-c5d6-44fc-b477-10eb4e3d8dd1",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "all calendar meets",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5216,
+        1216
+      ],
+      "id": "2441efa6-e434-4e5c-a06b-3ba45aacb352",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "summary of email",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        1216
+      ],
+      "id": "d74e1220-b084-4a26-84b0-a8e13fbf6315",
+      "name": "Aggregate2",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\"all calendar meets\":$input.first().json['all calendar meets']},{\"summary of email\":$('Aggregate2').first().json['summary of email']}]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5440,
+        1216
+      ],
+      "id": "8f5ed527-1f79-4335-aaed-1e683a315c94",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5664,
+        1216
+      ],
+      "id": "54d54493-b4dc-4b0c-8fde-9783f9ff778b",
+      "name": "Aggregate3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In a Code node after your LLM\nconst rawOutput = $input.first().json.output;\n\n// Clean the output\nlet cleanOutput = rawOutput.trim();\n\n// Remove markdown code blocks\nif (cleanOutput.startsWith('```json')) {\n  cleanOutput = cleanOutput.replace(/^```json\\s*/i, '').replace(/\\s*```$/, '');\n} else if (cleanOutput.startsWith('```')) {\n  cleanOutput = cleanOutput.replace(/^```\\s*/, '').replace(/\\s*```$/, '');\n}\n\n// Parse the JSON\ntry {\n  const parsed = JSON.parse(cleanOutput);\n  \n  // Return in n8n format\n  return [{\n    json: parsed\n  }];\n} catch (error) {\n  // Try to extract JSON if wrapped in other text\n  const jsonMatch = cleanOutput.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    try {\n      const parsed = JSON.parse(jsonMatch[0]);\n      return [{\n        json: parsed\n      }];\n    } catch (e) {\n      throw new Error(`Failed to parse JSON: ${e.message}`);\n    }\n  }\n  throw new Error(`No valid JSON found in output: ${cleanOutput.substring(0, 200)}...`);\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6240,
+        1216
+      ],
+      "id": "c1e1f229-c272-4619-9337-d70ee5c6fb5c",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "model": "ministral-3b-latest",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        5856,
+        1360
+      ],
+      "id": "c9981ed9-8d8a-4f72-aa44-e7130b709e59",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM emails_raw\nWHERE created_at >= date_trunc('day', CURRENT_DATE - INTERVAL '1 day')\n  AND created_at <= CURRENT_TIMESTAMP\nORDER BY created_at ASC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3248,
+        768
+      ],
+      "id": "b1792740-e4b6-4d6b-8ba4-e42cc997cfa8",
+      "name": "Get emails",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM emails_ai\nWHERE created_at >= date_trunc('day', CURRENT_DATE - INTERVAL '1 day')\n  AND created_at <= CURRENT_TIMESTAMP\nORDER BY created_at ASC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        3088,
+        1216
+      ],
+      "id": "d7a371a7-2687-4c03-9533-e984120e0802",
+      "name": "get summary of the email",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM calendar_events\nWHERE start_time >= CURRENT_TIMESTAMP\n  AND start_time < date_trunc('day', CURRENT_DATE + INTERVAL '1 day')\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4368,
+        1216
+      ],
+      "id": "d4dad59a-e236-44ff-a927-f4ef959bce9c",
+      "name": "get calendar events",
+      "executeOnce": true,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_ai",
+          "mode": "list",
+          "cachedResultName": "emails_ai"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "summary": "={{ $json.summary }}",
+            "urgency": "={{ $json.urgency }}",
+            "category": "={{ $json.category }}",
+            "action_items": "={{ $json.action_items[0] }}",
+            "created_at": "={{ $now }}",
+            "message_id_url": "={{ $json.html_link || null}}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action_items",
+              "displayName": "action_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message_id_url",
+              "displayName": "message_id_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        5696,
+        768
+      ],
+      "id": "c2349b95-3393-4a71-a1dd-d38dc763ff6f",
+      "name": "Insert summary of email in email ai table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "value": "public",
+          "mode": "list",
+          "cachedResultName": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_raw",
+          "mode": "list",
+          "cachedResultName": "emails_raw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "body": "={{ $json.output }}",
+            "created_at": "={{ $now }}",
+            "labels": "={{ $('Edit Fields').item.json.labelIds }}",
+            "subject": "={{ $('Edit Fields').item.json.subject }}",
+            "sender": "={{ $('Edit Fields').item.json.from.value }}",
+            "message_id_url": "={{ $('Edit Fields').item.json.url }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "message_id_url",
+              "displayName": "message_id_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender",
+              "displayName": "sender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "labels",
+              "displayName": "labels",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4240,
+        432
+      ],
+      "id": "77dfad63-a01e-4f01-967a-17014e744e44",
+      "name": "Insert mail in a email table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "calendar_events",
+          "mode": "list",
+          "cachedResultName": "calendar_events"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_id": "={{ $json.id }}",
+            "start_time": "={{ $json.start.dateTime }}",
+            "end_time": "={{ $json.end.dateTime }}",
+            "created_at": "={{ $json.created }}",
+            "title": "={{ $json.summary }}",
+            "description": "={{ $json.description || null}}",
+            "html_link": "={{ $json.htmlLink }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "event_id",
+              "displayName": "event_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "start_time",
+              "displayName": "start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "end_time",
+              "displayName": "end_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "html_link",
+              "displayName": "html_link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        4848,
+        432
+      ],
+      "id": "90155f6b-a7c2-4fc3-855b-58c57246e534",
+      "name": "Insert events in a calendar table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "daily_digest",
+          "mode": "list",
+          "cachedResultName": "daily_digest"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "digest_date": "={{ $now.toISODate() }}",
+            "content": "={{ {object:$json.data} }}",
+            "generated_at": "={{ $now }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "digest_date",
+              "displayName": "digest_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "object",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "generated_at",
+              "displayName": "generated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        6752,
+        1200
+      ],
+      "id": "69d34e02-b78b-4a82-b941-e1f026f3bb33",
+      "name": "Insert today digest in a daily digest table",
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "sparshgoyal199@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sparshgoyal199@gmail.com"
+        },
+        "returnAll": true,
+        "timeMax": "={{ $now.plus({ day: 1 }) }}",
+        "options": {
+          "orderBy": "startTime"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        4432,
+        432
+      ],
+      "id": "62e33d4d-cf74-4303-bcdb-45fd517b674d",
+      "name": "next day calendar events",
+      "executeOnce": true,
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "F2XSJhlGSiX1UdSO",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        6448,
+        1216
+      ],
+      "id": "eec32416-68cf-4759-b576-817c82d2d870",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "path": "f1eb24d5-da4c-4ef2-b4bc-0c348260d417",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -256,
+        1040
+      ],
+      "id": "b098d220-b34f-492e-9c37-7822fdd61a74",
+      "name": "Webhook",
+      "webhookId": "f1eb24d5-da4c-4ef2-b4bc-0c348260d417"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tasks",
+          "mode": "list",
+          "cachedResultName": "tasks"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2112,
+        1040
+      ],
+      "id": "e257801f-9aeb-43dc-96a5-032dec8910be",
+      "name": "Get Tasks",
+      "credentials": {
+        "postgres": {
+          "id": "sgm1FkD3kU7pOVhf",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Code in JavaScript3').item.json.daily_digest }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "bc10aa56-2cec-4a03-b26f-b5612b7bee0d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "6d277041-026e-4754-b35f-49ed7b86f0a6",
+                    "leftValue": "={{ $('Code in JavaScript3').item.json.tasks }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f0925ad2-5cc3-4433-8441-1f02020f852b",
+                    "leftValue": "={{ $('Code in JavaScript3').item.json.important_emails }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        1040
+      ],
+      "id": "ad7b262e-3ef7-42ff-91a0-2ccb8548f5d1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Aggregate5').item.json.data }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2000,
+        1280
+      ],
+      "id": "672e5032-0430-4e05-883a-d3489602d367",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        1504
+      ],
+      "id": "ee9ec666-6679-4eaa-8a62-e7c73303bd1c",
+      "name": "Mistral Cloud Chat Model3",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "wMOucmZ3n2Z9wjB8",
+          "name": "Mistral Cloud account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3de1f4d5-7c07-4866-bea4-0a5e7ebfaf13",
+              "leftValue": "={{ $('Code in JavaScript4').item.json.content }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2608,
+        352
+      ],
+      "id": "9b884f68-bde8-4596-9d59-3020c00115dd",
+      "name": "If",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\n    <title>Morning Digest Dashboard</title>\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n    <style>\n        :root {\n            --primary-color: #2563eb;\n            --critical-color: #dc2626;\n            --urgent-color: #ea580c;\n            --high-color: #d97706;\n            --medium-color: #059669;\n            --low-color: #0891b2;\n            --informational-color: #6b7280;\n            --personal-color: #7c3aed;\n            --bg-light: #f8fafc;\n            --bg-white: #ffffff;\n            --border-color: #e2e8f0;\n            --text-primary: #1e293b;\n            --text-secondary: #64748b;\n            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);\n            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);\n            --radius: 8px;\n            --mobile-breakpoint: 768px;\n            --tablet-breakpoint: 1024px;\n            --desktop-breakpoint: 1200px;\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        body {\n            font-family: 'Inter', sans-serif;\n            background-color: var(--bg-light);\n            color: var(--text-primary);\n            line-height: 1.6;\n            padding: clamp(10px, 2vw, 20px);\n            width: 100%;\n            min-height: 100vh;\n            -webkit-text-size-adjust: 100%;\n        }\n\n        .container {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n            max-width: 1400px;\n            margin: 0 auto;\n        }\n\n        /* Header Section */\n        .header-section {\n            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);\n            color: white;\n            padding: clamp(16px, 3vw, 24px);\n            border-radius: var(--radius);\n            box-shadow: var(--shadow-md);\n            display: flex;\n            flex-direction: column;\n            gap: clamp(12px, 2vw, 16px);\n            width: 100%;\n        }\n\n        .header-main {\n            width: 100%;\n        }\n\n        .header-main h1 {\n            font-size: clamp(1.25rem, 4vw, 1.75rem);\n            font-weight: 700;\n            margin-bottom: clamp(4px, 1vw, 8px);\n            line-height: 1.3;\n            word-break: break-word;\n        }\n\n        .header-subtitle {\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            opacity: 0.9;\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(8px, 2vw, 16px);\n            align-items: center;\n        }\n\n        .header-subtitle span {\n            display: flex;\n            align-items: center;\n            gap: 6px;\n            white-space: nowrap;\n        }\n\n        .header-stats {\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(12px, 2vw, 24px);\n            width: 100%;\n            justify-content: center;\n        }\n\n        .stat-box {\n            background: rgba(255, 255, 255, 0.15);\n            padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 20px);\n            border-radius: 6px;\n            text-align: center;\n            backdrop-filter: blur(10px);\n            min-width: 120px;\n            flex: 1;\n            max-width: 200px;\n        }\n\n        .stat-number {\n            font-size: clamp(1.25rem, 3vw, 1.5rem);\n            font-weight: 700;\n            display: block;\n            line-height: 1.2;\n        }\n\n        .stat-label {\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            opacity: 0.9;\n            margin-top: 4px;\n        }\n\n        /* Alert Banner */\n        .alert-banner {\n            background: linear-gradient(135deg, var(--critical-color), #b91c1c);\n            color: white;\n            padding: clamp(12px, 2vw, 16px);\n            border-radius: var(--radius);\n            display: flex;\n            align-items: flex-start;\n            gap: clamp(8px, 1.5vw, 12px);\n            box-shadow: var(--shadow-md);\n            margin-bottom: clamp(4px, 1vw, 8px);\n            width: 100%;\n        }\n\n        .alert-icon {\n            font-size: clamp(1.25rem, 2.5vw, 1.5rem);\n            flex-shrink: 0;\n            margin-top: 2px;\n        }\n\n        .alert-content {\n            flex: 1;\n            min-width: 0;\n        }\n\n        .alert-title {\n            font-weight: 600;\n            margin-bottom: clamp(2px, 0.5vw, 4px);\n            font-size: clamp(0.875rem, 2vw, 1rem);\n        }\n\n        /* Cards */\n        .card {\n            background: var(--bg-white);\n            border-radius: var(--radius);\n            padding: clamp(16px, 3vw, 24px);\n            box-shadow: var(--shadow-sm);\n            transition: transform 0.2s, box-shadow 0.2s;\n            width: 100%;\n            overflow: hidden;\n        }\n\n        .card:hover {\n            transform: translateY(-2px);\n            box-shadow: var(--shadow-md);\n        }\n\n        @media (hover: none) {\n            .card:hover {\n                transform: none;\n                box-shadow: var(--shadow-sm);\n            }\n        }\n\n        .card-header {\n            display: flex;\n            flex-direction: column;\n            gap: clamp(8px, 1.5vw, 12px);\n            margin-bottom: clamp(12px, 2vw, 20px);\n            padding-bottom: clamp(8px, 1.5vw, 12px);\n            border-bottom: 2px solid var(--border-color);\n        }\n\n        .card-title {\n            font-size: clamp(1rem, 2.5vw, 1.25rem);\n            font-weight: 600;\n            color: var(--text-primary);\n            display: flex;\n            align-items: center;\n            gap: clamp(6px, 1vw, 8px);\n            flex-wrap: wrap;\n            width: 100%;\n        }\n\n        .badge {\n            padding: clamp(3px, 0.5vw, 4px) clamp(8px, 1.5vw, 10px);\n            border-radius: 20px;\n            font-size: clamp(0.625rem, 1.5vw, 0.75rem);\n            font-weight: 600;\n            text-transform: uppercase;\n            letter-spacing: 0.5px;\n            white-space: nowrap;\n            flex-shrink: 0;\n        }\n\n        .badge-critical { background-color: var(--critical-color); color: white; }\n        .badge-urgent { background-color: var(--urgent-color); color: white; }\n        .badge-high { background-color: var(--high-color); color: white; }\n        .badge-medium { background-color: var(--medium-color); color: white; }\n        .badge-informational { background-color: var(--informational-color); color: white; }\n        .badge-personal { background-color: var(--personal-color); color: white; }\n        .badge-low { background-color: var(--low-color); color: white; }\n\n        /* Grid Layout */\n        .grid-2 {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n        }\n\n        .grid-3 {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n        }\n\n        /* List Items */\n        .list-item {\n            padding: clamp(12px, 2vw, 16px);\n            border-bottom: 1px solid var(--border-color);\n            display: flex;\n            flex-direction: column;\n            gap: clamp(8px, 1.5vw, 12px);\n            width: 100%;\n        }\n\n        .list-item:last-child {\n            border-bottom: none;\n        }\n\n        .list-item-content {\n            width: 100%;\n            min-width: 0;\n        }\n\n        .list-item-title {\n            font-weight: 500;\n            margin-bottom: clamp(4px, 1vw, 6px);\n            display: flex;\n            align-items: flex-start;\n            gap: clamp(6px, 1vw, 8px);\n            flex-wrap: wrap;\n        }\n\n        .list-item-description {\n            color: var(--text-secondary);\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            margin-bottom: clamp(6px, 1vw, 8px);\n            line-height: 1.5;\n            word-break: break-word;\n        }\n\n        .list-item-meta {\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(8px, 1.5vw, 12px);\n            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);\n            color: var(--text-secondary);\n            margin-top: 4px;\n        }\n\n        .list-item-action {\n            margin-top: clamp(4px, 1vw, 8px);\n            align-self: flex-start;\n        }\n\n        .action-btn {\n            background: var(--primary-color);\n            color: white;\n            border: none;\n            padding: clamp(5px, 1vw, 6px) clamp(10px, 2vw, 14px);\n            border-radius: 4px;\n            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);\n            font-weight: 500;\n            cursor: pointer;\n            display: inline-flex;\n            align-items: center;\n            gap: clamp(4px, 0.5vw, 6px);\n            transition: background 0.2s;\n            text-decoration: none;\n            white-space: nowrap;\n        }\n\n        .action-btn:hover {\n            background: #1d4ed8;\n        }\n\n        @media (hover: none) {\n            .action-btn:hover {\n                background: var(--primary-color);\n            }\n        }\n\n        /* Email Digest Tabs */\n        .tabs {\n            display: flex;\n            overflow-x: auto;\n            border-bottom: 1px solid var(--border-color);\n            margin-bottom: clamp(12px, 2vw, 20px);\n            gap: 2px;\n            -webkit-overflow-scrolling: touch;\n            scrollbar-width: none;\n            padding-bottom: 2px;\n        }\n\n        .tabs::-webkit-scrollbar {\n            display: none;\n        }\n\n        .tab {\n            padding: clamp(10px, 2vw, 12px) clamp(12px, 2.5vw, 20px);\n            font-weight: 500;\n            cursor: pointer;\n            border-bottom: 3px solid transparent;\n            white-space: nowrap;\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            flex-shrink: 0;\n        }\n\n        .tab.active {\n            border-bottom: 3px solid var(--primary-color);\n            color: var(--primary-color);\n        }\n\n        .tab-content {\n            display: none;\n            width: 100%;\n        }\n\n        .tab-content.active {\n            display: block;\n        }\n\n        /* Meeting Items */\n        .meeting-item {\n            display: flex;\n            flex-direction: column;\n            padding: clamp(12px, 2vw, 16px);\n            border-radius: 6px;\n            background: var(--bg-light);\n            margin-bottom: clamp(8px, 1.5vw, 12px);\n            gap: clamp(12px, 2vw, 16px);\n            width: 100%;\n        }\n\n        .meeting-time {\n            background: var(--primary-color);\n            color: white;\n            padding: clamp(6px, 1vw, 8px) clamp(8px, 1.5vw, 12px);\n            border-radius: 4px;\n            font-weight: 600;\n            text-align: center;\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            align-self: flex-start;\n            min-width: 80px;\n        }\n\n        .meeting-details {\n            flex: 1;\n            min-width: 0;\n        }\n\n        .meeting-title {\n            font-weight: 500;\n            margin-bottom: clamp(2px, 0.5vw, 4px);\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            line-height: 1.4;\n            word-break: break-word;\n        }\n\n        .meeting-location {\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            color: var(--text-secondary);\n            display: flex;\n            align-items: center;\n            gap: 6px;\n        }\n\n        /* Empty States */\n        .empty-state {\n            text-align: center;\n            padding: clamp(20px, 4vw, 40px) clamp(10px, 2vw, 20px);\n            color: var(--text-secondary);\n            width: 100%;\n        }\n\n        .empty-state i {\n            font-size: clamp(2rem, 6vw, 3rem);\n            margin-bottom: clamp(12px, 2vw, 16px);\n            opacity: 0.5;\n        }\n\n        .empty-state p {\n            font-size: clamp(0.875rem, 2vw, 1rem);\n        }\n\n        /* Footer */\n        .footer {\n            text-align: center;\n            padding: clamp(16px, 2.5vw, 24px);\n            color: var(--text-secondary);\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            margin-top: clamp(12px, 2vw, 24px);\n            border-top: 1px solid var(--border-color);\n            width: 100%;\n        }\n\n        .footer p {\n            margin-bottom: 8px;\n            line-height: 1.5;\n        }\n\n        /* Utility Classes */\n        .text-critical { color: var(--critical-color); }\n        .text-urgent { color: var(--urgent-color); }\n        .text-high { color: var(--high-color); }\n        .text-medium { color: var(--medium-color); }\n        .text-low { color: var(--low-color); }\n\n        .icon-small {\n            font-size: clamp(0.875rem, 1.5vw, 0.875rem);\n        }\n\n        .clickable {\n            cursor: pointer;\n            transition: opacity 0.2s;\n        }\n\n        .clickable:hover {\n            opacity: 0.8;\n        }\n\n        .hidden {\n            display: none !important;\n        }\n\n        /* Touch Device Optimizations */\n        @media (hover: none) and (pointer: coarse) {\n            .action-btn, .tab {\n                min-height: 44px;\n                min-width: 44px;\n            }\n            \n            input, button, .tab {\n                font-size: 16px !important;\n            }\n        }\n\n        /* Tablet */\n        @media (min-width: 768px) {\n            .header-section {\n                flex-direction: row;\n                flex-wrap: wrap;\n                align-items: center;\n                justify-content: space-between;\n            }\n            \n            .header-main {\n                flex: 1;\n                min-width: 0;\n            }\n            \n            .header-stats {\n                flex: 0 0 auto;\n                justify-content: flex-end;\n                margin-top: 0;\n            }\n            \n            .grid-2 {\n                grid-template-columns: repeat(2, 1fr);\n            }\n            \n            .grid-3 {\n                grid-template-columns: repeat(2, 1fr);\n            }\n            \n            .card-header {\n                flex-direction: row;\n                align-items: center;\n            }\n            \n            .list-item {\n                flex-direction: row;\n                align-items: flex-start;\n            }\n            \n            .list-item-action {\n                margin-top: 0;\n                align-self: center;\n            }\n            \n            .meeting-item {\n                flex-direction: row;\n                align-items: center;\n            }\n            \n            .meeting-time {\n                align-self: center;\n                min-width: 100px;\n            }\n        }\n\n        /* Desktop */\n        @media (min-width: 1024px) {\n            .grid-3 {\n                grid-template-columns: repeat(3, 1fr);\n            }\n            \n            .header-section {\n                flex-wrap: nowrap;\n            }\n            \n            .header-stats {\n                flex-wrap: nowrap;\n            }\n        }\n\n        /* Large Desktop */\n        @media (min-width: 1200px) {\n            .stat-box {\n                min-width: 140px;\n            }\n        }\n\n        /* Landscape Mobile */\n        @media (max-width: 896px) and (orientation: landscape) {\n            body {\n                padding: 8px;\n            }\n            \n            .container {\n                gap: 12px;\n            }\n            \n            .header-section {\n                padding: 12px;\n            }\n            \n            .header-subtitle {\n                flex-direction: column;\n                align-items: flex-start;\n                gap: 4px;\n            }\n            \n            .stat-box {\n                min-width: 100px;\n                padding: 8px 12px;\n            }\n            \n            .card {\n                padding: 12px;\n            }\n            \n            .list-item, .meeting-item {\n                padding: 10px;\n            }\n            \n            .tabs {\n                margin-bottom: 12px;\n            }\n            \n            .tab {\n                padding: 8px 12px;\n            }\n        }\n\n        /* Very Small Mobile */\n        @media (max-width: 360px) {\n            .header-subtitle {\n                flex-direction: column;\n                align-items: flex-start;\n                gap: 4px;\n            }\n            \n            .header-subtitle span {\n                font-size: 0.8rem;\n            }\n            \n            .stat-box {\n                min-width: 100px;\n                padding: 8px 12px;\n            }\n            \n            .stat-number {\n                font-size: 1.1rem;\n            }\n            \n            .stat-label {\n                font-size: 0.7rem;\n            }\n            \n            .badge {\n                padding: 2px 6px;\n                font-size: 0.6rem;\n            }\n            \n            .action-btn {\n                padding: 4px 8px;\n                font-size: 0.7rem;\n            }\n            \n            .tab {\n                padding: 6px 10px;\n                font-size: 0.7rem;\n            }\n        }\n\n        /* Dark Mode Support */\n        @media (prefers-color-scheme: dark) {\n            :root {\n                --bg-light: #1a1a1a;\n                --bg-white: #2d2d2d;\n                --border-color: #404040;\n                --text-primary: #e0e0e0;\n                --text-secondary: #a0a0a0;\n            }\n            \n            .alert-banner[style*=\"background: linear-gradient(135deg, var(--medium-color), #059669);\"] {\n                background: linear-gradient(135deg, #065f46, #059669) !important;\n            }\n            \n            .meeting-item {\n                background: #363636;\n            }\n        }\n\n        /* Reduced Motion */\n        @media (prefers-reduced-motion: reduce) {\n            .card, .action-btn, .clickable {\n                transition: none;\n            }\n            \n            .card:hover {\n                transform: none;\n            }\n        }\n\n        /* Print Styles */\n        @media print {\n            body {\n                background: white;\n                color: black;\n                padding: 0;\n                font-size: 12pt;\n            }\n            \n            .container {\n                max-width: none;\n                gap: 12pt;\n            }\n            \n            .card {\n                box-shadow: none;\n                border: 1px solid #ddd;\n                page-break-inside: avoid;\n            }\n            \n            .action-btn {\n                display: none;\n            }\n            \n            .footer {\n                border-top: 1px solid #ddd;\n            }\n            \n            @page {\n                margin: 1cm;\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <!-- Header Section -->\n        <div class=\"header-section\">\n            <div class=\"header-main\">\n                <h1 id=\"morning-digest-title\">\n                <div class=\"header-subtitle\">\n                    <span><i class=\"far fa-clock icon-small\"></i> Generated: <span id=\"generated-time\">{{ $json.content.object[0].header.generated }}</span></span>\n                    <span><i class=\"far fa-calendar icon-small\"></i> <span id=\"current-date\">{{ $json.content.object[0].header.morning_digest.replace('MORNING DIGEST - ', '') }}</span></span>\n                </div>\n            </div>\n            <div class=\"header-stats\">\n                <div class=\"stat-box\">\n                    <span class=\"stat-number\" id=\"email-count\">{{ $json.content.object[0].header.yesterdays_emails }}</span>\n                    <span class=\"stat-label\">Yesterday's Emails</span>\n                </div>\n                <div class=\"stat-box\">\n                    <span class=\"stat-number\" id=\"meeting-count\">{{ $json.content.object[0].header.upcoming_meetings }}</span>\n                    <span class=\"stat-label\">Upcoming Meetings</span>\n                </div>\n            </div>\n        </div>\n\n        <!-- Immediate Attention Required -->\n        {{$json.content.object[0].immediate_attention_required.critical_emails.length > 0 || $json.content.object[0].immediate_attention_required.critical_meetings_today.length > 0 ? `\n        <div class=\"alert-banner\" id=\"critical-alert\">\n            <i class=\"fas fa-exclamation-triangle alert-icon\"></i>\n            <div class=\"alert-content\">\n                <div class=\"alert-title\">Immediate Attention Required</div>\n                <div id=\"critical-alert-text\">\n                    Critical items require your immediate attention\n                </div>\n            </div>\n        </div>\n        ` : `\n        <div class=\"alert-banner\" style=\"background: linear-gradient(135deg, var(--medium-color), #059669);\" id=\"critical-alert\">\n            <i class=\"fas fa-check-circle alert-icon\"></i>\n            <div class=\"alert-content\">\n                <div class=\"alert-title\">All Clear</div>\n                <div id=\"critical-alert-text\">\n                    No critical items requiring immediate attention\n                </div>\n            </div>\n        </div>\n        ` }}\n\n        <!-- Two Column Grid: Critical Items & Today's Meetings -->\n        <div class=\"grid-2\">\n            <!-- Critical Emails Section -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-fire text-critical icon-small\"></i>\n                        <span>Critical Emails</span>\n                        <span class=\"badge badge-critical\" id=\"critical-emails-count\">\n                            {{$json.content.object[0].immediate_attention_required.critical_emails.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"critical-emails-list\">\n                    {{ $json.content.object[0].immediate_attention_required.critical_emails.map(email => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-envelope icon-small\"></i>\n                                <span class=\"email-message\">${email.message}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                    View Email\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].immediate_attention_required.critical_emails.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No critical emails requiring immediate attention</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n\n            <!-- Critical Meetings Section -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-calendar-times text-critical icon-small\"></i>\n                        <span>Critical Meetings Today</span>\n                        <span class=\"badge badge-critical\" id=\"critical-meetings-count\">\n                            {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"critical-meetings-list\">\n                    {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.map(meeting => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-video icon-small\"></i>\n                                <span class=\"meeting-message\">${meeting.message}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${meeting.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-calendar-alt icon-small\"></i>\n                                    Join Meeting\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-calendar-check\"></i>\n                        <p>No critical meetings requiring immediate attention</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n        </div>\n\n        <!-- Action Items Grid -->\n        <div class=\"grid-2\">\n            <!-- Action Required from Mails -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-tasks text-urgent icon-small\"></i>\n                        <span>Action Required from Mails</span>\n                        <span class=\"badge badge-urgent\" id=\"mail-actions-count\">\n                            {{ $json.content.object[0].action_required_from_mails.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"mail-actions-list\">\n                    {{ $json.content.object[0].action_required_from_mails.map(action => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-envelope-open-text icon-small\"></i>\n                                <span class=\"action-message\">${action.message}</span>\n                            </div>\n                            <div class=\"list-item-meta\">\n                                <span><i class=\"far fa-clock icon-small\"></i> Deadline: ${action.deadline}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${action.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                    View Source\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].action_required_from_mails.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No pending actions from emails</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n\n            <!-- Action Required Before Meetings -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-clipboard-list text-high icon-small\"></i>\n                        <span>Action Required Before Meetings</span>\n                        <span class=\"badge badge-high\" id=\"meeting-actions-count\">\n                            {{ $json.content.object[0].action_required_before_meetings.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"meeting-actions-list\">\n                    {{ $json.content.object[0].action_required_before_meetings.map(action => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-clipboard-check icon-small\"></i>\n                                <span class=\"action-message\">${action.message}</span>\n                            </div>\n                            <div class=\"list-item-meta\">\n                                <span><i class=\"far fa-clock icon-small\"></i> Deadline: ${action.deadline}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${action.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-calendar-alt icon-small\"></i>\n                                    View Meeting\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].action_required_before_meetings.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No pending actions before meetings</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n        </div>\n\n        <!-- Email Digest with Tabs -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-inbox icon-small\"></i>\n                    <span>Email Digest</span>\n                    <span class=\"badge badge-informational\" id=\"total-emails-digest\">\n                        {{ $json.content.object[0].email_digest.critical.length + $json.content.object[0].email_digest.urgent.length + $json.content.object[0].email_digest.high.length + $json.content.object[0].email_digest.medium.length }}\n                    </span>\n                </div>\n            </div>\n            \n            <!-- Tabs for different urgency levels -->\n            <div class=\"tabs\" id=\"email-tabs\">\n                <div class=\"tab active\" data-tab=\"critical\" onclick=\"switchTab('critical')\">\n                    <i class=\"fas fa-fire\"></i> Critical ({{ $json.content.object[0].email_digest.critical.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"urgent\" onclick=\"switchTab('urgent')\">\n                    <i class=\"fas fa-exclamation-circle\"></i> Urgent ({{ $json.content.object[0].email_digest.urgent.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"high\" onclick=\"switchTab('high')\">\n                    <i class=\"fas fa-arrow-up\"></i> High ({{ $json.content.object[0].email_digest.high.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"medium\" onclick=\"switchTab('medium')\">\n                    <i class=\"fas fa-minus-circle\"></i> Medium ({{ $json.content.object[0].email_digest.medium.length }})\n                </div>\n            </div>\n\n            <!-- Tab Contents -->\n            <div class=\"tab-content active\" id=\"tab-critical\">\n                {{ $json.content.object[0].email_digest.critical.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-fire text-critical icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.critical.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No critical emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-urgent\">\n                {{ $json.content.object[0].email_digest.urgent.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-exclamation-circle text-urgent icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.urgent.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No urgent emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-high\">\n                {{ $json.content.object[0].email_digest.high.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-arrow-up text-high icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.high.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No high priority emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-medium\">\n                {{ $json.content.object[0].email_digest.medium.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-minus-circle text-medium icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.medium.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No medium priority emails</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Today's Meetings -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-calendar-day text-primary icon-small\"></i>\n                    <span>Today's Meetings</span>\n                    <span class=\"badge\" style=\"background-color: var(--primary-color);\" id=\"todays-meetings-count\">\n                        {{ $json.content.object[0].todays_meetings.length }}\n                    </span>\n                </div>\n            </div>\n            <div id=\"todays-meetings-list\">\n                {{ $json.content.object[0].todays_meetings.map(meeting => `\n                <div class=\"meeting-item\">\n                    <div class=\"meeting-time\">${meeting.time}</div>\n                    <div class=\"meeting-details\">\n                        <div class=\"meeting-title\">${meeting.summary}</div>\n                        <div class=\"meeting-location\">\n                            <i class=\"fas fa-map-marker-alt icon-small\"></i>\n                            ${meeting.location}\n                        </div>\n                    </div>\n                    <div class=\"list-item-action\">\n                        <a href=\"${meeting.link}\" target=\"_blank\" class=\"action-btn\">\n                            <i class=\"fas fa-external-link-alt icon-small\"></i>\n                            Join\n                        </a>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].todays_meetings.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-calendar\"></i>\n                    <p>No meetings scheduled for today</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Awareness Items -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-info-circle text-informational icon-small\"></i>\n                    <span>Awareness Items</span>\n                    <span class=\"badge badge-informational\" id=\"awareness-items-count\">\n                        {{ $json.content.object[0].awareness_items.length }}\n                    </span>\n                </div>\n            </div>\n            <div id=\"awareness-items-list\">\n                {{ $json.content.object[0].awareness_items.map(item => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            ${item.type === 'LOW' ? '<i class=\"fas fa-info-circle text-low icon-small\"></i>' : ''}\n                            ${item.type === 'INFORMATIONAL' ? '<i class=\"fas fa-newspaper text-informational icon-small\"></i>' : ''}\n                            ${item.type === 'PERSONAL' ? '<i class=\"fas fa-user text-personal icon-small\"></i>' : ''}\n                            <span class=\"badge badge-${item.type.toLowerCase()}\">${item.type}</span>\n                            <span class=\"item-summary\">${item.summary}</span>\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${item.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].awareness_items.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No awareness items</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Footer -->\n        <div class=\"footer\">\n            <p>Morning Digest • Generated Automatically • {{ $json.content.object[0].header.generated }} • {{ $json.content.object[0].header.morning_digest }}</p>\n            <p class=\"text-secondary\">Last refreshed: <span id=\"last-refresh\">{{ new Date().toLocaleTimeString() }}</span></p>\n        </div>\n    </div>\n\n    <script>\n        function switchTab(tabName) {\n            // Hide all tab contents\n            document.querySelectorAll('.tab-content').forEach(content => {\n                content.classList.remove('active');\n            });\n            \n            // Remove active class from all tabs\n            document.querySelectorAll('.tab').forEach(tab => {\n                tab.classList.remove('active');\n            });\n            \n            // Show selected tab content\n            document.getElementById('tab-' + tabName).classList.add('active');\n            \n            // Activate selected tab\n            document.querySelector(`.tab[data-tab=\"${tabName}\"]`).classList.add('active');\n        }\n        \n        // Initialize the first tab as active\n        document.addEventListener('DOMContentLoaded', function() {\n            switchTab('critical');\n            \n            // Handle responsive behavior\n            handleResponsive();\n            window.addEventListener('resize', handleResponsive);\n        });\n        \n        function handleResponsive() {\n            // Handle touch device optimizations\n            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);\n            \n            if (isTouchDevice) {\n                document.body.classList.add('touch-device');\n            } else {\n                document.body.classList.remove('touch-device');\n            }\n            \n            // Adjust header layout on very small screens\n            if (window.innerWidth < 480) {\n                document.querySelectorAll('.card-title').forEach(title => {\n                    const icon = title.querySelector('.icon-small');\n                    if (icon) icon.style.fontSize = '0.8rem';\n                });\n            }\n        }\n    </script>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        2400,
+        352
+      ],
+      "id": "cfdece3a-6cf7-4488-8aa7-616c47d1558b",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ec35a2ec-2ab1-40f8-a6b7-e9232f69eca4",
+              "leftValue": "={{ $('Code in JavaScript3').item.json.daily_digest }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "22f13663-460c-4dfe-82d4-ec6c26bb7322",
+              "leftValue": "={{ $('Code in JavaScript3').item.json.important_emails }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "03624926-1b1a-48b5-9ef0-2f2180dc66db",
+              "leftValue": "={{ $('Code in JavaScript3').item.json.tasks }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1136,
+        1040
+      ],
+      "id": "01dbabd0-e06d-43a0-9b35-182e5ec66d6c",
+      "name": "If1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "emails_ai",
+          "mode": "list",
+          "cachedResultName": "emails_ai"
+        },
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgresTool",
+      "typeVersion": 2.6,
+      "position": [
+        2144,
+        1520
+      ],
+      "id": "1d660c03-8d84-44aa-8445-779afe5239f3",
+      "name": "Get emails1",
+      "credentials": {
+        "postgres": {
+          "id": "sgm1FkD3kU7pOVhf",
+          "name": "Postgres account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.query }}",
+        "options": {
+          "systemMessage": "=You are an intent classifier for a personal productivity assistant.\n\nInstructions:\n\nAnalyze the user's message and determine which task(s) they want to perform based on the Supported Intent Categories below.\n\nDate Extraction:\n\nExtract any date mentioned in the format YYYY-MM-DD.\n\nIf no date is mentioned, assume today's date (based on the current date when processing).\n\nIf the date is not explicitly required for the intent (e.g., for a general request without a date reference), return an empty string \"\" for the date field.\n\nResponse Rules:\n\nIf the user query is related to one or more of the Supported Intent Categories:\nReturn your response ONLY as a JSON object with this exact structure:\n\njson\n{\n  \"daily_digest\": boolean,\n  \"tasks\": boolean,\n  \"important_emails\": boolean,\n  \"date\": \"string\"\n}\n\n\nSupported Intent Categories:\n\ndaily_digest – User wants to generate or view their daily digest/summary.\n\ntasks – User wants to see their tasks or to-dos.\n\nimportant_emails – User wants to see only important emails.\n\nExamples:\n\nUser: \"show me my tasks for tomorrow\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": true,\n  \"important_emails\": false,\n  \"date\": \"2024-01-15\"\n}\nUser: \"give me my daily summary\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": true,\n  \"tasks\": false,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\nUser: \"show important emails from yesterday\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": false,\n  \"important_emails\": true,\n  \"date\": \"2024-01-13\"\n}\nUser: \"show me my tasks and important emails\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": true,\n  \"important_emails\": true,\n  \"date\": \"\"\n}\nUser: \"Can I get my daily digest?\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": true,\n  \"tasks\": false,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\nUser: \"Show me my tasks for January 20th\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": true,\n  \"important_emails\": false,\n  \"date\": \"2024-01-20\"\n}\nUser: \"What are my important emails from last Friday?\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": false,\n  \"important_emails\": true,\n  \"date\": \"2024-01-12\"\n}\nUser: \"Give me my daily summary and tasks for today\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": true,\n  \"tasks\": true,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\nUser: \"What's the weather like?\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": false,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\n\nUser: \"Hi\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": false,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\n\nUser: \"Any other user not related to important_emails,tasks and daily_digest\"\nResponse (JSON):\n\njson\n{\n  \"daily_digest\": false,\n  \"tasks\": false,\n  \"important_emails\": false,\n  \"date\": \"\"\n}\nNote:\n\nFor date extraction, \"today\" refers to the current date when processing the query.\n\nThe response must strictly adhere to the format based on the query's relevance to the Supported Intent Categories."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -48,
+        1040
+      ],
+      "id": "ed5f644a-911e-408b-b28c-ed64d9670da0",
+      "name": "AI Agent2"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        1248
+      ],
+      "id": "5cb08e21-ca4a-45c8-88a4-e51de1b76fab",
+      "name": "Mistral Cloud Chat Model2",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the string output from previous node (AI Agent)\nlet raw = $input.first().json.output;\n\n// Ensure it's a string\nif (typeof raw === 'string') {\n  raw = raw\n    // Remove leading ```json or ``` if present\n    .replace(/```json/gi, '')\n    .replace(/```/g, '')\n    // Remove leading \"json\\n\" or \"json\\r\\n\"\n    .replace(/^json\\s*/i, '')\n    .trim();\n}\n\ntry {\n  // Convert cleaned string → JSON object\n  const parsed = JSON.parse(raw);\n\n  // Return as n8n-compatible JSON\n  return [\n    {\n      json: parsed\n    }\n  ];\n} catch (error) {\n  // Fallback if JSON parsing fails\n  return [\n    {\n      json: {\n        output: raw,\n        parseError: true,\n        errorMessage: error.message\n      }\n    }\n  ];\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        1040
+      ],
+      "id": "4be2059b-2d13-487d-b6da-c1a76b44598a",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Aggregate5').item.json.data }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2080,
+        832
+      ],
+      "id": "7d80934d-8267-43c4-8ffc-fb418e4877fe",
+      "name": "AI Agent4"
+    },
+    {
+      "parameters": {
+        "model": "open-mistral-7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        1952,
+        1040
+      ],
+      "id": "138c32a0-b4d2-4cd1-848d-0bc936b36bf4",
+      "name": "Mistral Cloud Chat Model4",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "666ef53a-e162-49df-ba35-0d0ce6388818",
+              "name": "query",
+              "value": "={{ $('Webhook').item.json.query }}",
+              "type": "object"
+            },
+            {
+              "id": "51f63d1e-ea6e-47eb-bf6e-e147bed765eb",
+              "name": "date",
+              "value": "={{ $json.date || $now}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        1040
+      ],
+      "id": "8f7bc1aa-4d8c-40c9-8e98-d70944c418b3",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        928,
+        1040
+      ],
+      "id": "2dcad6a5-21a9-456f-92d2-cfce2b5edfa7",
+      "name": "Aggregate5"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      html: \"System is only capable to do extract tasks, summarize tasks, and generate daily digest\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        944
+      ],
+      "id": "52bd9139-f282-4828-81d2-e806d3f359d0",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "content": "Name:\n✨ AI Executive Assistant – Smart Morning Digest ✨\n\nPurpose:\nA local, AI-powered automation system that acts as a virtual executive assistant by intelligently reading emails and calendar events, identifying what truly matters, extracting actionable tasks, and prioritizing the day ahead. It generates a clean, executive-friendly morning digest that highlights urgent items, upcoming meetings, and follow-ups—helping start each day with clarity, focus, and control.",
+        "height": 2588,
+        "width": 6328
+      },
+      "id": "36bb30af-53ae-4613-99e0-b598f3184703",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -448,
+        208
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "Workflow 2 - Generating AI Summary and Storing them",
+        "height": 336,
+        "width": 1376
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3024,
+        704
+      ],
+      "typeVersion": 1,
+      "id": "2b2cce32-cc1e-4e42-9d09-8c5987da97ca",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Workflow 3 - Creating Task and Prioritization",
+        "height": 400,
+        "width": 2240
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3056,
+        1056
+      ],
+      "typeVersion": 1,
+      "id": "a37c4e9b-4659-47aa-81cd-d261199f8922",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => ({\n  json: {\n    email: item.json\n  }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3456,
+        768
+      ],
+      "id": "13060d8c-33c2-4430-a75f-7bab4aca5df0",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        4784,
+        976
+      ],
+      "id": "78b520bb-b19c-49dd-a2dd-0090ccfc4d4c",
+      "name": "Mistral Cloud Chat Model1",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "r1gnyzVtkR4gGLJD",
+          "name": "Mistral Cloud account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5264,
+        768
+      ],
+      "id": "324dfc84-ba46-4a49-b967-c6171ecb0da8",
+      "name": "Aggregate6"
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no\">\n    <title>Morning Digest Dashboard</title>\n    <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">\n    <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap\" rel=\"stylesheet\">\n    <style>\n        :root {\n            --primary-color: #2563eb;\n            --critical-color: #dc2626;\n            --urgent-color: #ea580c;\n            --high-color: #d97706;\n            --medium-color: #059669;\n            --low-color: #0891b2;\n            --informational-color: #6b7280;\n            --personal-color: #7c3aed;\n            --bg-light: #f8fafc;\n            --bg-white: #ffffff;\n            --border-color: #e2e8f0;\n            --text-primary: #1e293b;\n            --text-secondary: #64748b;\n            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);\n            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);\n            --radius: 8px;\n            --mobile-breakpoint: 768px;\n            --tablet-breakpoint: 1024px;\n            --desktop-breakpoint: 1200px;\n        }\n\n        * {\n            margin: 0;\n            padding: 0;\n            box-sizing: border-box;\n        }\n\n        body {\n            font-family: 'Inter', sans-serif;\n            background-color: var(--bg-light);\n            color: var(--text-primary);\n            line-height: 1.6;\n            padding: clamp(10px, 2vw, 20px);\n            width: 100%;\n            min-height: 100vh;\n            -webkit-text-size-adjust: 100%;\n        }\n\n        .container {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n            max-width: 1400px;\n            margin: 0 auto;\n        }\n\n        /* Header Section */\n        .header-section {\n            background: linear-gradient(135deg, var(--primary-color), #1d4ed8);\n            color: white;\n            padding: clamp(16px, 3vw, 24px);\n            border-radius: var(--radius);\n            box-shadow: var(--shadow-md);\n            display: flex;\n            flex-direction: column;\n            gap: clamp(12px, 2vw, 16px);\n            width: 100%;\n        }\n\n        .header-main {\n            width: 100%;\n        }\n\n        .header-main h1 {\n            font-size: clamp(1.25rem, 4vw, 1.75rem);\n            font-weight: 700;\n            margin-bottom: clamp(4px, 1vw, 8px);\n            line-height: 1.3;\n            word-break: break-word;\n        }\n\n        .header-subtitle {\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            opacity: 0.9;\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(8px, 2vw, 16px);\n            align-items: center;\n        }\n\n        .header-subtitle span {\n            display: flex;\n            align-items: center;\n            gap: 6px;\n            white-space: nowrap;\n        }\n\n        .header-stats {\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(12px, 2vw, 24px);\n            width: 100%;\n            justify-content: center;\n        }\n\n        .stat-box {\n            background: rgba(255, 255, 255, 0.15);\n            padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 20px);\n            border-radius: 6px;\n            text-align: center;\n            backdrop-filter: blur(10px);\n            min-width: 120px;\n            flex: 1;\n            max-width: 200px;\n        }\n\n        .stat-number {\n            font-size: clamp(1.25rem, 3vw, 1.5rem);\n            font-weight: 700;\n            display: block;\n            line-height: 1.2;\n        }\n\n        .stat-label {\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            opacity: 0.9;\n            margin-top: 4px;\n        }\n\n        /* Alert Banner */\n        .alert-banner {\n            background: linear-gradient(135deg, var(--critical-color), #b91c1c);\n            color: white;\n            padding: clamp(12px, 2vw, 16px);\n            border-radius: var(--radius);\n            display: flex;\n            align-items: flex-start;\n            gap: clamp(8px, 1.5vw, 12px);\n            box-shadow: var(--shadow-md);\n            margin-bottom: clamp(4px, 1vw, 8px);\n            width: 100%;\n        }\n\n        .alert-icon {\n            font-size: clamp(1.25rem, 2.5vw, 1.5rem);\n            flex-shrink: 0;\n            margin-top: 2px;\n        }\n\n        .alert-content {\n            flex: 1;\n            min-width: 0;\n        }\n\n        .alert-title {\n            font-weight: 600;\n            margin-bottom: clamp(2px, 0.5vw, 4px);\n            font-size: clamp(0.875rem, 2vw, 1rem);\n        }\n\n        /* Cards */\n        .card {\n            background: var(--bg-white);\n            border-radius: var(--radius);\n            padding: clamp(16px, 3vw, 24px);\n            box-shadow: var(--shadow-sm);\n            transition: transform 0.2s, box-shadow 0.2s;\n            width: 100%;\n            overflow: hidden;\n        }\n\n        .card:hover {\n            transform: translateY(-2px);\n            box-shadow: var(--shadow-md);\n        }\n\n        @media (hover: none) {\n            .card:hover {\n                transform: none;\n                box-shadow: var(--shadow-sm);\n            }\n        }\n\n        .card-header {\n            display: flex;\n            flex-direction: column;\n            gap: clamp(8px, 1.5vw, 12px);\n            margin-bottom: clamp(12px, 2vw, 20px);\n            padding-bottom: clamp(8px, 1.5vw, 12px);\n            border-bottom: 2px solid var(--border-color);\n        }\n\n        .card-title {\n            font-size: clamp(1rem, 2.5vw, 1.25rem);\n            font-weight: 600;\n            color: var(--text-primary);\n            display: flex;\n            align-items: center;\n            gap: clamp(6px, 1vw, 8px);\n            flex-wrap: wrap;\n            width: 100%;\n        }\n\n        .badge {\n            padding: clamp(3px, 0.5vw, 4px) clamp(8px, 1.5vw, 10px);\n            border-radius: 20px;\n            font-size: clamp(0.625rem, 1.5vw, 0.75rem);\n            font-weight: 600;\n            text-transform: uppercase;\n            letter-spacing: 0.5px;\n            white-space: nowrap;\n            flex-shrink: 0;\n        }\n\n        .badge-critical { background-color: var(--critical-color); color: white; }\n        .badge-urgent { background-color: var(--urgent-color); color: white; }\n        .badge-high { background-color: var(--high-color); color: white; }\n        .badge-medium { background-color: var(--medium-color); color: white; }\n        .badge-informational { background-color: var(--informational-color); color: white; }\n        .badge-personal { background-color: var(--personal-color); color: white; }\n        .badge-low { background-color: var(--low-color); color: white; }\n\n        /* Grid Layout */\n        .grid-2 {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n        }\n\n        .grid-3 {\n            display: grid;\n            grid-template-columns: 1fr;\n            gap: clamp(16px, 3vw, 24px);\n            width: 100%;\n        }\n\n        /* List Items */\n        .list-item {\n            padding: clamp(12px, 2vw, 16px);\n            border-bottom: 1px solid var(--border-color);\n            display: flex;\n            flex-direction: column;\n            gap: clamp(8px, 1.5vw, 12px);\n            width: 100%;\n        }\n\n        .list-item:last-child {\n            border-bottom: none;\n        }\n\n        .list-item-content {\n            width: 100%;\n            min-width: 0;\n        }\n\n        .list-item-title {\n            font-weight: 500;\n            margin-bottom: clamp(4px, 1vw, 6px);\n            display: flex;\n            align-items: flex-start;\n            gap: clamp(6px, 1vw, 8px);\n            flex-wrap: wrap;\n        }\n\n        .list-item-description {\n            color: var(--text-secondary);\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            margin-bottom: clamp(6px, 1vw, 8px);\n            line-height: 1.5;\n            word-break: break-word;\n        }\n\n        .list-item-meta {\n            display: flex;\n            flex-wrap: wrap;\n            gap: clamp(8px, 1.5vw, 12px);\n            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);\n            color: var(--text-secondary);\n            margin-top: 4px;\n        }\n\n        .list-item-action {\n            margin-top: clamp(4px, 1vw, 8px);\n            align-self: flex-start;\n        }\n\n        .action-btn {\n            background: var(--primary-color);\n            color: white;\n            border: none;\n            padding: clamp(5px, 1vw, 6px) clamp(10px, 2vw, 14px);\n            border-radius: 4px;\n            font-size: clamp(0.75rem, 1.5vw, 0.8125rem);\n            font-weight: 500;\n            cursor: pointer;\n            display: inline-flex;\n            align-items: center;\n            gap: clamp(4px, 0.5vw, 6px);\n            transition: background 0.2s;\n            text-decoration: none;\n            white-space: nowrap;\n        }\n\n        .action-btn:hover {\n            background: #1d4ed8;\n        }\n\n        @media (hover: none) {\n            .action-btn:hover {\n                background: var(--primary-color);\n            }\n        }\n\n        /* Email Digest Tabs */\n        .tabs {\n            display: flex;\n            overflow-x: auto;\n            border-bottom: 1px solid var(--border-color);\n            margin-bottom: clamp(12px, 2vw, 20px);\n            gap: 2px;\n            -webkit-overflow-scrolling: touch;\n            scrollbar-width: none;\n            padding-bottom: 2px;\n        }\n\n        .tabs::-webkit-scrollbar {\n            display: none;\n        }\n\n        .tab {\n            padding: clamp(10px, 2vw, 12px) clamp(12px, 2.5vw, 20px);\n            font-weight: 500;\n            cursor: pointer;\n            border-bottom: 3px solid transparent;\n            white-space: nowrap;\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            flex-shrink: 0;\n        }\n\n        .tab.active {\n            border-bottom: 3px solid var(--primary-color);\n            color: var(--primary-color);\n        }\n\n        .tab-content {\n            display: none;\n            width: 100%;\n        }\n\n        .tab-content.active {\n            display: block;\n        }\n\n        /* Meeting Items */\n        .meeting-item {\n            display: flex;\n            flex-direction: column;\n            padding: clamp(12px, 2vw, 16px);\n            border-radius: 6px;\n            background: var(--bg-light);\n            margin-bottom: clamp(8px, 1.5vw, 12px);\n            gap: clamp(12px, 2vw, 16px);\n            width: 100%;\n        }\n\n        .meeting-time {\n            background: var(--primary-color);\n            color: white;\n            padding: clamp(6px, 1vw, 8px) clamp(8px, 1.5vw, 12px);\n            border-radius: 4px;\n            font-weight: 600;\n            text-align: center;\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            align-self: flex-start;\n            min-width: 80px;\n        }\n\n        .meeting-details {\n            flex: 1;\n            min-width: 0;\n        }\n\n        .meeting-title {\n            font-weight: 500;\n            margin-bottom: clamp(2px, 0.5vw, 4px);\n            font-size: clamp(0.875rem, 2vw, 1rem);\n            line-height: 1.4;\n            word-break: break-word;\n        }\n\n        .meeting-location {\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            color: var(--text-secondary);\n            display: flex;\n            align-items: center;\n            gap: 6px;\n        }\n\n        /* Empty States */\n        .empty-state {\n            text-align: center;\n            padding: clamp(20px, 4vw, 40px) clamp(10px, 2vw, 20px);\n            color: var(--text-secondary);\n            width: 100%;\n        }\n\n        .empty-state i {\n            font-size: clamp(2rem, 6vw, 3rem);\n            margin-bottom: clamp(12px, 2vw, 16px);\n            opacity: 0.5;\n        }\n\n        .empty-state p {\n            font-size: clamp(0.875rem, 2vw, 1rem);\n        }\n\n        /* Footer */\n        .footer {\n            text-align: center;\n            padding: clamp(16px, 2.5vw, 24px);\n            color: var(--text-secondary);\n            font-size: clamp(0.75rem, 1.5vw, 0.875rem);\n            margin-top: clamp(12px, 2vw, 24px);\n            border-top: 1px solid var(--border-color);\n            width: 100%;\n        }\n\n        .footer p {\n            margin-bottom: 8px;\n            line-height: 1.5;\n        }\n\n        /* Utility Classes */\n        .text-critical { color: var(--critical-color); }\n        .text-urgent { color: var(--urgent-color); }\n        .text-high { color: var(--high-color); }\n        .text-medium { color: var(--medium-color); }\n        .text-low { color: var(--low-color); }\n\n        .icon-small {\n            font-size: clamp(0.875rem, 1.5vw, 0.875rem);\n        }\n\n        .clickable {\n            cursor: pointer;\n            transition: opacity 0.2s;\n        }\n\n        .clickable:hover {\n            opacity: 0.8;\n        }\n\n        .hidden {\n            display: none !important;\n        }\n\n        /* Touch Device Optimizations */\n        @media (hover: none) and (pointer: coarse) {\n            .action-btn, .tab {\n                min-height: 44px;\n                min-width: 44px;\n            }\n            \n            input, button, .tab {\n                font-size: 16px !important;\n            }\n        }\n\n        /* Tablet */\n        @media (min-width: 768px) {\n            .header-section {\n                flex-direction: row;\n                flex-wrap: wrap;\n                align-items: center;\n                justify-content: space-between;\n            }\n            \n            .header-main {\n                flex: 1;\n                min-width: 0;\n            }\n            \n            .header-stats {\n                flex: 0 0 auto;\n                justify-content: flex-end;\n                margin-top: 0;\n            }\n            \n            .grid-2 {\n                grid-template-columns: repeat(2, 1fr);\n            }\n            \n            .grid-3 {\n                grid-template-columns: repeat(2, 1fr);\n            }\n            \n            .card-header {\n                flex-direction: row;\n                align-items: center;\n            }\n            \n            .list-item {\n                flex-direction: row;\n                align-items: flex-start;\n            }\n            \n            .list-item-action {\n                margin-top: 0;\n                align-self: center;\n            }\n            \n            .meeting-item {\n                flex-direction: row;\n                align-items: center;\n            }\n            \n            .meeting-time {\n                align-self: center;\n                min-width: 100px;\n            }\n        }\n\n        /* Desktop */\n        @media (min-width: 1024px) {\n            .grid-3 {\n                grid-template-columns: repeat(3, 1fr);\n            }\n            \n            .header-section {\n                flex-wrap: nowrap;\n            }\n            \n            .header-stats {\n                flex-wrap: nowrap;\n            }\n        }\n\n        /* Large Desktop */\n        @media (min-width: 1200px) {\n            .stat-box {\n                min-width: 140px;\n            }\n        }\n\n        /* Landscape Mobile */\n        @media (max-width: 896px) and (orientation: landscape) {\n            body {\n                padding: 8px;\n            }\n            \n            .container {\n                gap: 12px;\n            }\n            \n            .header-section {\n                padding: 12px;\n            }\n            \n            .header-subtitle {\n                flex-direction: column;\n                align-items: flex-start;\n                gap: 4px;\n            }\n            \n            .stat-box {\n                min-width: 100px;\n                padding: 8px 12px;\n            }\n            \n            .card {\n                padding: 12px;\n            }\n            \n            .list-item, .meeting-item {\n                padding: 10px;\n            }\n            \n            .tabs {\n                margin-bottom: 12px;\n            }\n            \n            .tab {\n                padding: 8px 12px;\n            }\n        }\n\n        /* Very Small Mobile */\n        @media (max-width: 360px) {\n            .header-subtitle {\n                flex-direction: column;\n                align-items: flex-start;\n                gap: 4px;\n            }\n            \n            .header-subtitle span {\n                font-size: 0.8rem;\n            }\n            \n            .stat-box {\n                min-width: 100px;\n                padding: 8px 12px;\n            }\n            \n            .stat-number {\n                font-size: 1.1rem;\n            }\n            \n            .stat-label {\n                font-size: 0.7rem;\n            }\n            \n            .badge {\n                padding: 2px 6px;\n                font-size: 0.6rem;\n            }\n            \n            .action-btn {\n                padding: 4px 8px;\n                font-size: 0.7rem;\n            }\n            \n            .tab {\n                padding: 6px 10px;\n                font-size: 0.7rem;\n            }\n        }\n\n        /* Dark Mode Support */\n        @media (prefers-color-scheme: dark) {\n            :root {\n                --bg-light: #1a1a1a;\n                --bg-white: #2d2d2d;\n                --border-color: #404040;\n                --text-primary: #e0e0e0;\n                --text-secondary: #a0a0a0;\n            }\n            \n            .alert-banner[style*=\"background: linear-gradient(135deg, var(--medium-color), #059669);\"] {\n                background: linear-gradient(135deg, #065f46, #059669) !important;\n            }\n            \n            .meeting-item {\n                background: #363636;\n            }\n        }\n\n        /* Reduced Motion */\n        @media (prefers-reduced-motion: reduce) {\n            .card, .action-btn, .clickable {\n                transition: none;\n            }\n            \n            .card:hover {\n                transform: none;\n            }\n        }\n\n        /* Print Styles */\n        @media print {\n            body {\n                background: white;\n                color: black;\n                padding: 0;\n                font-size: 12pt;\n            }\n            \n            .container {\n                max-width: none;\n                gap: 12pt;\n            }\n            \n            .card {\n                box-shadow: none;\n                border: 1px solid #ddd;\n                page-break-inside: avoid;\n            }\n            \n            .action-btn {\n                display: none;\n            }\n            \n            .footer {\n                border-top: 1px solid #ddd;\n            }\n            \n            @page {\n                margin: 1cm;\n            }\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <!-- Header Section -->\n        <div class=\"header-section\">\n            <div class=\"header-main\">\n                <h1 id=\"morning-digest-title\">{{ $json.content.object[0].header.morning_digest }}</h1>\n                <div class=\"header-subtitle\">\n                    <span><i class=\"far fa-clock icon-small\"></i> Generated: <span id=\"generated-time\">{{ $json.content.object[0].header.generated }}</span></span>\n                    <span><i class=\"far fa-calendar icon-small\"></i> <span id=\"current-date\">{{ $json.content.object[0].header.morning_digest.replace('MORNING DIGEST - ', '') }}</span></span>\n                </div>\n            </div>\n            <div class=\"header-stats\">\n                <div class=\"stat-box\">\n                    <span class=\"stat-number\" id=\"email-count\">{{ $json.content.object[0].header.yesterdays_emails }}</span>\n                    <span class=\"stat-label\">Yesterday's Emails</span>\n                </div>\n                <div class=\"stat-box\">\n                    <span class=\"stat-number\" id=\"meeting-count\">{{ $json.content.object[0].header.upcoming_meetings }}</span>\n                    <span class=\"stat-label\">Upcoming Meetings</span>\n                </div>\n            </div>\n        </div>\n\n        <!-- Immediate Attention Required -->\n        {{$json.content.object[0].immediate_attention_required.critical_emails.length > 0 || $json.content.object[0].immediate_attention_required.critical_meetings_today.length > 0 ? `\n        <div class=\"alert-banner\" id=\"critical-alert\">\n            <i class=\"fas fa-exclamation-triangle alert-icon\"></i>\n            <div class=\"alert-content\">\n                <div class=\"alert-title\">Immediate Attention Required</div>\n                <div id=\"critical-alert-text\">\n                    Critical items require your immediate attention\n                </div>\n            </div>\n        </div>\n        ` : `\n        <div class=\"alert-banner\" style=\"background: linear-gradient(135deg, var(--medium-color), #059669);\" id=\"critical-alert\">\n            <i class=\"fas fa-check-circle alert-icon\"></i>\n            <div class=\"alert-content\">\n                <div class=\"alert-title\">All Clear</div>\n                <div id=\"critical-alert-text\">\n                    No critical items requiring immediate attention\n                </div>\n            </div>\n        </div>\n        ` }}\n\n        <!-- Two Column Grid: Critical Items & Today's Meetings -->\n        <div class=\"grid-2\">\n            <!-- Critical Emails Section -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-fire text-critical icon-small\"></i>\n                        <span>Critical Emails</span>\n                        <span class=\"badge badge-critical\" id=\"critical-emails-count\">\n                            {{$json.content.object[0].immediate_attention_required.critical_emails.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"critical-emails-list\">\n                    {{ $json.content.object[0].immediate_attention_required.critical_emails.map(email => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-envelope icon-small\"></i>\n                                <span class=\"email-message\">${email.message}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                    View Email\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].immediate_attention_required.critical_emails.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No critical emails requiring immediate attention</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n\n            <!-- Critical Meetings Section -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-calendar-times text-critical icon-small\"></i>\n                        <span>Critical Meetings Today</span>\n                        <span class=\"badge badge-critical\" id=\"critical-meetings-count\">\n                            {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"critical-meetings-list\">\n                    {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.map(meeting => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-video icon-small\"></i>\n                                <span class=\"meeting-message\">${meeting.message}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${meeting.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-calendar-alt icon-small\"></i>\n                                    Join Meeting\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].immediate_attention_required.critical_meetings_today.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-calendar-check\"></i>\n                        <p>No critical meetings requiring immediate attention</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n        </div>\n\n        <!-- Action Items Grid -->\n        <div class=\"grid-2\">\n            <!-- Action Required from Mails -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-tasks text-urgent icon-small\"></i>\n                        <span>Action Required from Mails</span>\n                        <span class=\"badge badge-urgent\" id=\"mail-actions-count\">\n                            {{ $json.content.object[0].action_required_from_mails.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"mail-actions-list\">\n                    {{ $json.content.object[0].action_required_from_mails.map(action => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-envelope-open-text icon-small\"></i>\n                                <span class=\"action-message\">${action.message}</span>\n                            </div>\n                            <div class=\"list-item-meta\">\n                                <span><i class=\"far fa-clock icon-small\"></i> Deadline: ${action.deadline}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${action.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                    View Source\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].action_required_from_mails.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No pending actions from emails</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n\n            <!-- Action Required Before Meetings -->\n            <div class=\"card\">\n                <div class=\"card-header\">\n                    <div class=\"card-title\">\n                        <i class=\"fas fa-clipboard-list text-high icon-small\"></i>\n                        <span>Action Required Before Meetings</span>\n                        <span class=\"badge badge-high\" id=\"meeting-actions-count\">\n                            {{ $json.content.object[0].action_required_before_meetings.length }}\n                        </span>\n                    </div>\n                </div>\n                <div id=\"meeting-actions-list\">\n                    {{ $json.content.object[0].action_required_before_meetings.map(action => `\n                    <div class=\"list-item\">\n                        <div class=\"list-item-content\">\n                            <div class=\"list-item-title\">\n                                <i class=\"fas fa-clipboard-check icon-small\"></i>\n                                <span class=\"action-message\">${action.message}</span>\n                            </div>\n                            <div class=\"list-item-meta\">\n                                <span><i class=\"far fa-clock icon-small\"></i> Deadline: ${action.deadline}</span>\n                            </div>\n                            <div class=\"list-item-action\">\n                                <a href=\"${action.link}\" target=\"_blank\" class=\"action-btn\">\n                                    <i class=\"fas fa-calendar-alt icon-small\"></i>\n                                    View Meeting\n                                </a>\n                            </div>\n                        </div>\n                    </div>\n                    `).join('') }}\n                    \n                    {{ $json.content.object[0].action_required_before_meetings.length === 0 ? `\n                    <div class=\"empty-state\">\n                        <i class=\"far fa-check-circle\"></i>\n                        <p>No pending actions before meetings</p>\n                    </div>\n                    ` : '' }}\n                </div>\n            </div>\n        </div>\n\n        <!-- Email Digest with Tabs -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-inbox icon-small\"></i>\n                    <span>Email Digest</span>\n                    <span class=\"badge badge-informational\" id=\"total-emails-digest\">\n                        {{ $json.content.object[0].email_digest.critical.length + $json.content.object[0].email_digest.urgent.length + $json.content.object[0].email_digest.high.length + $json.content.object[0].email_digest.medium.length }}\n                    </span>\n                </div>\n            </div>\n            \n            <!-- Tabs for different urgency levels -->\n            <div class=\"tabs\" id=\"email-tabs\">\n                <div class=\"tab active\" data-tab=\"critical\" onclick=\"switchTab('critical')\">\n                    <i class=\"fas fa-fire\"></i> Critical ({{ $json.content.object[0].email_digest.critical.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"urgent\" onclick=\"switchTab('urgent')\">\n                    <i class=\"fas fa-exclamation-circle\"></i> Urgent ({{ $json.content.object[0].email_digest.urgent.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"high\" onclick=\"switchTab('high')\">\n                    <i class=\"fas fa-arrow-up\"></i> High ({{ $json.content.object[0].email_digest.high.length }})\n                </div>\n                <div class=\"tab\" data-tab=\"medium\" onclick=\"switchTab('medium')\">\n                    <i class=\"fas fa-minus-circle\"></i> Medium ({{ $json.content.object[0].email_digest.medium.length }})\n                </div>\n            </div>\n\n            <!-- Tab Contents -->\n            <div class=\"tab-content active\" id=\"tab-critical\">\n                {{ $json.content.object[0].email_digest.critical.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-fire text-critical icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.critical.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No critical emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-urgent\">\n                {{ $json.content.object[0].email_digest.urgent.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-exclamation-circle text-urgent icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.urgent.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No urgent emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-high\">\n                {{ $json.content.object[0].email_digest.high.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-arrow-up text-high icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.high.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No high priority emails</p>\n                </div>\n                ` : '' }}\n            </div>\n\n            <div class=\"tab-content\" id=\"tab-medium\">\n                {{ $json.content.object[0].email_digest.medium.map(email => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            <i class=\"fas fa-minus-circle text-medium icon-small\"></i>\n                            <span class=\"email-summary\">${email.summary}</span>\n                        </div>\n                        <div class=\"list-item-description\">\n                            Action: ${email.action} | Deadline: ${email.deadline}\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${email.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View Email\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].email_digest.medium.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No medium priority emails</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Today's Meetings -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-calendar-day text-primary icon-small\"></i>\n                    <span>Today's Meetings</span>\n                    <span class=\"badge\" style=\"background-color: var(--primary-color);\" id=\"todays-meetings-count\">\n                        {{ $json.content.object[0].todays_meetings.length }}\n                    </span>\n                </div>\n            </div>\n            <div id=\"todays-meetings-list\">\n                {{ $json.content.object[0].todays_meetings.map(meeting => `\n                <div class=\"meeting-item\">\n                    <div class=\"meeting-time\">${meeting.time}</div>\n                    <div class=\"meeting-details\">\n                        <div class=\"meeting-title\">${meeting.summary}</div>\n                        <div class=\"meeting-location\">\n                            <i class=\"fas fa-map-marker-alt icon-small\"></i>\n                            ${meeting.location}\n                        </div>\n                    </div>\n                    <div class=\"list-item-action\">\n                        <a href=\"${meeting.link}\" target=\"_blank\" class=\"action-btn\">\n                            <i class=\"fas fa-external-link-alt icon-small\"></i>\n                            Join\n                        </a>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].todays_meetings.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-calendar\"></i>\n                    <p>No meetings scheduled for today</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Awareness Items -->\n        <div class=\"card\">\n            <div class=\"card-header\">\n                <div class=\"card-title\">\n                    <i class=\"fas fa-info-circle text-informational icon-small\"></i>\n                    <span>Awareness Items</span>\n                    <span class=\"badge badge-informational\" id=\"awareness-items-count\">\n                        {{ $json.content.object[0].awareness_items.length }}\n                    </span>\n                </div>\n            </div>\n            <div id=\"awareness-items-list\">\n                {{ $json.content.object[0].awareness_items.map(item => `\n                <div class=\"list-item\">\n                    <div class=\"list-item-content\">\n                        <div class=\"list-item-title\">\n                            ${item.type === 'LOW' ? '<i class=\"fas fa-info-circle text-low icon-small\"></i>' : ''}\n                            ${item.type === 'INFORMATIONAL' ? '<i class=\"fas fa-newspaper text-informational icon-small\"></i>' : ''}\n                            ${item.type === 'PERSONAL' ? '<i class=\"fas fa-user text-personal icon-small\"></i>' : ''}\n                            <span class=\"badge badge-${item.type.toLowerCase()}\">${item.type}</span>\n                            <span class=\"item-summary\">${item.summary}</span>\n                        </div>\n                        <div class=\"list-item-action\">\n                            <a href=\"${item.link}\" target=\"_blank\" class=\"action-btn\">\n                                <i class=\"fas fa-external-link-alt icon-small\"></i>\n                                View\n                            </a>\n                        </div>\n                    </div>\n                </div>\n                `).join('') }}\n                \n                {{ $json.content.object[0].awareness_items.length === 0 ? `\n                <div class=\"empty-state\">\n                    <i class=\"far fa-check-circle\"></i>\n                    <p>No awareness items</p>\n                </div>\n                ` : '' }}\n            </div>\n        </div>\n\n        <!-- Footer -->\n        <div class=\"footer\">\n            <p>Morning Digest • Generated Automatically • {{ $json.content.object[0].header.generated }} • {{ $json.content.object[0].header.morning_digest }}</p>\n            <p class=\"text-secondary\">Last refreshed: <span id=\"last-refresh\">{{ new Date().toLocaleTimeString() }}</span></p>\n        </div>\n    </div>\n\n    <script>\n        function switchTab(tabName) {\n            // Hide all tab contents\n            document.querySelectorAll('.tab-content').forEach(content => {\n                content.classList.remove('active');\n            });\n            \n            // Remove active class from all tabs\n            document.querySelectorAll('.tab').forEach(tab => {\n                tab.classList.remove('active');\n            });\n            \n            // Show selected tab content\n            document.getElementById('tab-' + tabName).classList.add('active');\n            \n            // Activate selected tab\n            document.querySelector(`.tab[data-tab=\"${tabName}\"]`).classList.add('active');\n        }\n        \n        // Initialize the first tab as active\n        document.addEventListener('DOMContentLoaded', function() {\n            switchTab('critical');\n            \n            // Handle responsive behavior\n            handleResponsive();\n            window.addEventListener('resize', handleResponsive);\n        });\n        \n        function handleResponsive() {\n            // Handle touch device optimizations\n            const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);\n            \n            if (isTouchDevice) {\n                document.body.classList.add('touch-device');\n            } else {\n                document.body.classList.remove('touch-device');\n            }\n            \n            // Adjust header layout on very small screens\n            if (window.innerWidth < 480) {\n                document.querySelectorAll('.card-title').forEach(title => {\n                    const icon = title.querySelector('.icon-small');\n                    if (icon) icon.style.fontSize = '0.8rem';\n                });\n            }\n        }\n    </script>\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        7168,
+        1200
+      ],
+      "id": "640a89e5-7856-4697-9ca2-c631db029373",
+      "name": "HTML1"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6960,
+        1200
+      ],
+      "id": "1e4206dd-952c-4263-92d0-1bd394fe7b36",
+      "name": "Code in JavaScript7"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        352
+      ],
+      "id": "00fef46d-2415-446f-8655-820d2bc8a307",
+      "name": "Code in JavaScript4",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT *\nFROM daily_digest\nWHERE digest_date = CURRENT_DATE\nORDER BY generated_at ASC;\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1776,
+        352
+      ],
+      "id": "fc38558b-5154-4160-a07e-16fe2ab76acd",
+      "name": "Execute a SQL query",
+      "alwaysOutputData": true,
+      "executeOnce": false,
+      "credentials": {
+        "postgres": {
+          "id": "vUQsA6wGLOxEwh8P",
+          "name": "Postgres account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Fetch Emails - Past 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Aggregate6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Insert summary of email in email ai table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Insert mail in a email table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Insert events in a calendar table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "get calendar events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate3": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get emails": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get summary of the email": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get calendar events": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert summary of email in email ai table": {
+      "main": [
+        [
+          {
+            "node": "get summary of the email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert mail in a email table": {
+      "main": [
+        [
+          {
+            "node": "next day calendar events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert events in a calendar table": {
+      "main": [
+        [
+          {
+            "node": "Get emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "next day calendar events": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "Insert today digest in a daily digest table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Execute a SQL query",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Fetch Emails - Past 24 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get emails1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent4",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate5": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate6": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert today digest in a daily digest table": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute a SQL query": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "11db0238-717e-424e-ac6a-bc7ec5b4dd00",
+  "meta": {
+    "templateId": "5003",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e91500adc6b9d5c04c07524a89d5dd1212a1463f53b577bc9ee6ec31526e0c6a"
+  },
+  "id": "FubKQIqZGYi1maRx",
+  "tags": []
+}
