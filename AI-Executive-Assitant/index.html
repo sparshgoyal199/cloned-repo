@@ -2,274 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Webhook Chatbot Interface</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-bg: #dcfce7;
+            --success-border: #86efac;
+            --success-text: #166534;
+        }
+
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
+            margin: 0;
+            padding: 0;
             min-height: 100vh;
-            padding: 20px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            height: 95vh;
-            display: flex;
-            flex-direction: column;
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px 40px;
-            text-align: center;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
         }
 
-        .header h1 {
-            font-size: 2.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
         }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
         }
 
-        .chat-interface {
-            display: flex;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .sidebar {
-            width: 300px;
-            background: #f8fafc;
-            border-right: 1px solid #e2e8f0;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .message {
-            max-width: 85%;
-            padding: 18px 22px;
-            border-radius: 18px;
-            line-height: 1.5;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-bottom-right-radius: 5px;
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background: #f1f5f9;
-            color: #334155;
-            border-bottom-left-radius: 5px;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        .message-content {
-            margin-bottom: 8px;
-        }
-
-        .message-time {
-            font-size: 0.85rem;
-            opacity: 0.7;
-            text-align: right;
-        }
-
-        .user-message .message-time {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .bot-message .message-time {
-            color: #64748b;
-        }
-
-        /* Styles for HTML content responses */
-        .html-response {
-            width: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .html-response iframe {
-            width: 100%;
-            border: none;
-            background: white;
-        }
-
-        .input-container {
-            padding: 20px 25px;
-            border-top: 1px solid #e2e8f0;
-            background: white;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        #userInput {
-            flex: 1;
-            padding: 16px 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            resize: none;
-            min-height: 56px;
-            max-height: 120px;
-            font-family: inherit;
-        }
-
-        #userInput:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        #sendButton {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            padding: 16px 28px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        #sendButton:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        #sendButton:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
-        }
-
-        /* Info panel styles */
-        .info-panel {
-            margin-bottom: 25px;
-        }
-
-        .info-panel h3 {
-            color: #334155;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .webhook-url {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: #64748b;
-            word-break: break-all;
-            margin-bottom: 15px;
-        }
-
-        .quick-prompts {
-            display: grid;
-            gap: 10px;
-        }
-
-        .quick-prompt {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-            color: #475569;
-        }
-
-        .quick-prompt:hover {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-            transform: translateX(5px);
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            background: #dcfce7;
-            border: 1px solid #86efac;
-            border-radius: 8px;
-            color: #166534;
-            font-size: 0.9rem;
-            margin-top: 20px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #22c55e;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
@@ -277,139 +67,240 @@
             50% { opacity: 0.5; }
         }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
+        /* Message animations */
+        .message-enter {
+            animation: fadeInUp 0.3s ease-out;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .spinner {
+            animation: spin 1s linear infinite;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+        .status-dot {
+            animation: pulse 2s infinite;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* Custom styles for iframe */
+        .html-iframe {
+            background: white;
+            border-radius: 0.5rem;
         }
 
-        /* Mobile responsiveness */
+        /* Mobile optimizations */
         @media (max-width: 768px) {
-            .container {
-                height: 100vh;
-                border-radius: 0;
-            }
-
-            .chat-interface {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0;
-                max-height: 250px;
-            }
-
-            .header {
-                padding: 20px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
             .message {
-                max-width: 95%;
+                max-width: 90%;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            button, 
+            .quick-prompt {
+                min-height: 44px;
+            }
+            
+            input, 
+            textarea {
+                font-size: 16px !important; /* Prevents iOS zoom */
+            }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Webhook Chat Assistant</h1>
-            <p>Send queries to your n8n webhook and get HTML responses</p>
-        </div>
-
-        <div class="chat-interface">
-            <div class="sidebar">
-                <div class="info-panel">
-                    <h3>Connected Webhook</h3>
-                    <div class="webhook-url">
-                        https://n8n-service-qi67.onrender.com/webhook/f1eb24d5-da4c-4ef2-b4bc-0c348260d417
-                    </div>
-                    <div class="status-indicator">
-                        <div class="status-dot"></div>
-                        Connected to webhook
-                    </div>
-                </div>
-
-                <div class="info-panel">
-                    <h3>Quick Prompts</h3>
-                    <div class="quick-prompts">
-                        <div class="quick-prompt" onclick="sendQuickPrompt('Generate morning digest for today')">
-                            📋 Generate Morning Digest
-                        </div>
-                        <div class="quick-prompt" onclick="sendQuickPrompt('Show my tasks and priorities')">
-                            ✅ Show Today's Tasks
-                        </div>
-                        <div class="quick-prompt" onclick="sendQuickPrompt('Display email summary')">
-                            📧 Email Summary
-                        </div>
-                        <div class="quick-prompt" onclick="sendQuickPrompt('Show meeting schedule')">
-                            📅 Meeting Schedule
-                        </div>
-                    </div>
+<body class="min-h-screen">
+    <div class="flex flex-col min-h-screen bg-white">
+        <!-- Header -->
+        <header class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+            <div class="container mx-auto px-4 py-4 relative">
+                <button id="mobileMenuToggle" 
+                        class="lg:hidden absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-2xl focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 rounded-full p-2">
+                    ☰
+                </button>
+                <div class="text-center lg:text-left lg:ml-12">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-1">Webhook Chat Assistant</h1>
+                    <p class="text-sm md:text-base opacity-90">Send queries to your n8n webhook and get HTML responses</p>
                 </div>
             </div>
+        </header>
 
-            <div class="chat-area">
-                <div class="chat-messages" id="chatMessages">
-                    <!-- Messages will be inserted here -->
-                    <div class="message bot-message">
-                        <div class="message-content">
-                            👋 Hello! I'm connected to your n8n webhook at:<br>
-                            <code style="background: rgba(102, 126, 234, 0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9rem;">
-                                https://n8n-service-qi67.onrender.com/webhook/f1eb24d5-da4c-4ef2-b4bc-0c348260d417
-                            </code><br><br>
-                            You can ask me to generate morning digests, task lists, or any other requests that your webhook handles.
-                            Try using the quick prompts on the left or type your own message below!
+        <!-- Main Content -->
+        <div class="flex flex-1 min-h-0">
+            <!-- Sidebar Overlay -->
+            <div id="sidebarOverlay" 
+                 class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden transition-opacity duration-300"></div>
+
+            <!-- Sidebar -->
+            <aside id="sidebar" 
+                   class="fixed lg:static inset-y-0 left-0 w-80 bg-gray-50 border-r border-gray-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col">
+                <div class="p-4 flex-1 overflow-y-auto custom-scrollbar">
+                    <!-- Webhook Info -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Connected Webhook</h3>
+                        <div class="bg-white p-3 rounded-lg border border-gray-300 mb-3">
+                            <code class="text-xs sm:text-sm break-all text-gray-700 font-mono">
+                                http://localhost:5678/webhook/6c9d4362-5268-47a8-b3f1-cb2340cfee27
+                            </code>
                         </div>
-                        <div class="message-time">Just now</div>
+                        <div class="flex items-center gap-2 bg-green-100 border border-green-200 text-green-800 px-3 py-2 rounded-lg">
+                            <div class="w-2 h-2 bg-green-500 rounded-full status-dot"></div>
+                            <span class="text-sm">Connected to webhook</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Prompts -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Quick Prompts</h3>
+                        <div class="space-y-2">
+                            <button onclick="sendQuickPrompt('Generate morning digest for today')"
+                                    class="quick-prompt w-full text-left p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                                📋 Generate Morning Digest
+                            </button>
+                            <button onclick="sendQuickPrompt('Show my tasks and priorities')"
+                                    class="quick-prompt w-full text-left p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                                ✅ Show Today's Tasks
+                            </button>
+                            <button onclick="sendQuickPrompt('Display email summary')"
+                                    class="quick-prompt w-full text-left p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                                📧 Email Summary
+                            </button>
+                            <button onclick="sendQuickPrompt('Show meeting schedule')"
+                                    class="quick-prompt w-full text-left p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                                📅 Meeting Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Area -->
+            <main class="flex-1 flex flex-col min-h-0">
+                <!-- Chat Messages -->
+                <div id="chatMessages" 
+                     class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-gray-50">
+                    <!-- Welcome Message -->
+                    <div class="message-enter mb-4">
+                        <div class="max-w-3xl bg-gray-100 rounded-2xl rounded-bl-lg p-4">
+                            <div class="text-gray-800 mb-2">
+                                👋 Hello! I'm connected to your n8n webhook at:<br>
+                                <code class="inline-block bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-sm font-mono mt-1">
+                                    http://localhost:5678/webhook/6c9d4362-5268-47a8-b3f1-cb2340cfee27
+                                </code><br><br>
+                                You can ask me to generate morning digests, task lists, or any other requests that your webhook handles.
+                                Try using the quick prompts or type your own message below!
+                            </div>
+                            <div class="text-right text-xs text-gray-500 mt-2">Just now</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="input-container">
-                    <div class="input-wrapper">
-                        <textarea 
-                            id="userInput" 
-                            placeholder="Type your message here... (e.g., 'Generate today's morning digest' or 'Show my schedule')"
-                            rows="1"
-                            oninput="autoResize(this)"
-                            onkeydown="handleEnter(event)"
-                        ></textarea>
-                        <button id="sendButton" onclick="sendMessage()">
-                            <span id="buttonText">Send</span>
-                            <span id="buttonIcon">🚀</span>
-                        </button>
+                <!-- Input Area -->
+                <div class="border-t border-gray-200 bg-white p-4">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="flex gap-2">
+                            <textarea id="userInput"
+                                      class="flex-1 min-h-[60px] max-h-[200px] p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-shadow duration-200"
+                                      placeholder="Type your message here... (e.g., 'Generate today's morning digest' or 'Show my schedule')"
+                                      rows="1"
+                                      oninput="autoResize(this)"
+                                      onkeydown="handleEnter(event)"
+                                      aria-label="Message input"></textarea>
+                            <button id="sendButton"
+                                    onclick="sendMessage()"
+                                    class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 active:from-indigo-800 active:to-purple-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed min-w-[100px] flex items-center justify-center gap-2">
+                                <span id="buttonText">Send</span>
+                                <span id="buttonIcon">🚀</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 
     <script>
+        // DOM Elements
         const chatMessages = document.getElementById('chatMessages');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
         const buttonText = document.getElementById('buttonText');
         const buttonIcon = document.getElementById('buttonIcon');
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-        const WEBHOOK_URL = 'https://n8n-service-qi67.onrender.com/webhook/f1eb24d5-da4c-4ef2-b4bc-0c348260d417';
+        // Webhook URL
+        //Test URL
+        //const WEBHOOK_URL = 'https://ai-ea-agent.duckdns.org/webhook-test/f1eb24d5-da4c-4ef2-b4bc-0c348260d417';
+        
+        //Production URL
+        const WEBHOOK_URL = 'https://ai-ea-agent.duckdns.org/webhook/f1eb24d5-da4c-4ef2-b4bc-0c348260d417';
 
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            userInput.focus();
+            autoResize(userInput);
+            updateLayoutForScreenSize();
+        });
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            mobileMenuToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth < 1024 && 
+                    !sidebar.contains(event.target) && 
+                    !mobileMenuToggle.contains(event.target) && 
+                    !sidebarOverlay.classList.contains('hidden')) {
+                    closeSidebar();
+                }
+            });
+
+            // Handle escape key to close sidebar
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && window.innerWidth < 1024) {
+                    closeSidebar();
+                }
+            });
+
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                autoResize(userInput);
+                updateLayoutForScreenSize();
+            });
+        }
+
+        // Layout Functions
+        function updateLayoutForScreenSize() {
+            if (window.innerWidth >= 1024) {
+                closeSidebar();
+            }
+        }
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+            document.body.style.overflow = sidebar.classList.contains('-translate-x-full') ? '' : 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        // Message Functions
         function formatTime() {
             const now = new Date();
             return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -417,81 +308,67 @@
 
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.className = `message-enter mb-4 ${isUser ? 'ml-auto' : ''}`;
+            messageDiv.style.maxWidth = 'min(90%, 48rem)';
             
-            // Check if content is an HTML document
             const isHTMLDocument = typeof content === 'string' && 
-                                  (content.includes('<!DOCTYPE html>') || 
-                                   content.includes('<html>'));
+                                  (content.includes('<!DOCTYPE html>') || content.includes('<html>'));
             
             if (isHTMLDocument) {
-                // Create a toggle button
-                const toggleButton = document.createElement('button');
-                toggleButton.className = 'html-toggle-btn';
-                toggleButton.innerHTML = '📄 View HTML Report <span>▼</span>';
-                toggleButton.style.cssText = `
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 20px;
-                    cursor: pointer;
-                    margin-bottom: 10px;
-                    font-weight: bold;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 8px;
-                    width: 100%;
-                    transition: all 0.3s ease;
-                `;
+                const messageContent = document.createElement('div');
+                messageContent.className = `rounded-2xl p-4 ${isUser ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-lg' : 'bg-gray-100 text-gray-800 rounded-bl-lg'}`;
                 
-                // Create iframe container
+                const toggleButton = document.createElement('button');
+                toggleButton.className = `w-full mb-2 px-4 py-2 rounded-lg flex items-center justify-center gap-2 font-medium ${isUser ? 'bg-white text-indigo-600 hover:bg-gray-100' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`;
+                toggleButton.innerHTML = '📄 View HTML Report <span>▼</span>';
+                toggleButton.setAttribute('aria-expanded', 'false');
+                
                 const iframeContainer = document.createElement('div');
-                iframeContainer.className = 'html-response';
-                iframeContainer.style.cssText = `
-                    display: none;
-                    margin-bottom: 10px;
-                `;
+                iframeContainer.className = 'html-response mt-2 hidden';
+                iframeContainer.setAttribute('role', 'region');
+                iframeContainer.setAttribute('aria-label', 'HTML Report Content');
                 
                 const iframe = document.createElement('iframe');
+                iframe.className = 'html-iframe w-full border border-gray-300';
+                iframe.setAttribute('title', 'HTML Report');
+                iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms');
                 iframe.srcdoc = content;
-                iframe.style.cssText = `
-                    width: 100%;
-                    height: 600px;
-                    border: none;
-                    border-radius: 10px;
-                `;
                 
                 iframeContainer.appendChild(iframe);
                 
-                // Toggle functionality
                 toggleButton.addEventListener('click', () => {
-                    const isHidden = iframeContainer.style.display === 'none';
-                    iframeContainer.style.display = isHidden ? 'block' : 'none';
-                    toggleButton.querySelector('span').textContent = isHidden ? '▲' : '▼';
-                    toggleButton.style.marginBottom = isHidden ? '10px' : '0';
+                    const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+                    iframeContainer.classList.toggle('hidden', isExpanded);
+                    toggleButton.setAttribute('aria-expanded', !isExpanded);
+                    toggleButton.querySelector('span').textContent = isExpanded ? '▼' : '▲';
                     
-                    // Resize iframe when shown
-                    if (isHidden) {
+                    if (!isExpanded) {
                         setTimeout(() => {
-                            iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+                            try {
+                                const docHeight = iframe.contentWindow.document.documentElement.scrollHeight;
+                                const bodyHeight = iframe.contentWindow.document.body.scrollHeight;
+                                iframe.style.height = Math.max(docHeight, bodyHeight, 400) + 'px';
+                            } catch (e) {
+                                iframe.style.height = '600px';
+                            }
                         }, 100);
                     }
                 });
                 
                 const timeDiv = document.createElement('div');
-                timeDiv.className = 'message-time';
+                timeDiv.className = `text-xs mt-2 ${isUser ? 'text-white text-opacity-80' : 'text-gray-500'}`;
                 timeDiv.textContent = formatTime();
                 
-                messageDiv.appendChild(toggleButton);
-                messageDiv.appendChild(iframeContainer);
-                messageDiv.appendChild(timeDiv);
+                messageContent.appendChild(toggleButton);
+                messageContent.appendChild(iframeContainer);
+                messageContent.appendChild(timeDiv);
+                messageDiv.appendChild(messageContent);
             } else {
-                // Regular text content
                 messageDiv.innerHTML = `
-                    <div class="message-content">${content}</div>
-                    <div class="message-time">${formatTime()}</div>
+                    <div class="rounded-2xl p-4 ${isUser ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-br-lg' : 'bg-gray-100 text-gray-800 rounded-bl-lg'}">
+                        <div class="whitespace-pre-wrap">${content}</div>
+                        <div class="text-xs mt-2 ${isUser ? 'text-white text-opacity-80' : 'text-gray-500'} text-right">${formatTime()}</div>
+                    </div>
                 `;
             }
             
@@ -501,7 +378,7 @@
 
         function autoResize(textarea) {
             textarea.style.height = 'auto';
-            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
         }
 
         function handleEnter(event) {
@@ -515,27 +392,26 @@
             userInput.value = prompt;
             autoResize(userInput);
             sendMessage();
+            if (window.innerWidth < 1024) {
+                closeSidebar();
+            }
         }
 
         async function sendMessage() {
             const message = userInput.value.trim();
-            
             if (!message) return;
 
-            // Add user message
             addMessage(message, true);
             userInput.value = '';
             autoResize(userInput);
             
-            // Disable input and show loading
             userInput.disabled = true;
             sendButton.disabled = true;
             buttonText.textContent = 'Sending...';
-            buttonIcon.textContent = '⏳';
+            buttonIcon.innerHTML = '<div class="spinner border-2 border-white border-t-transparent rounded-full w-5 h-5"></div>';
 
             try {
-                // Send to webhook
-                const response = await fetch(`${WEBHOOK_URL}?query=${message}`, {
+                const response = await fetch(`${WEBHOOK_URL}?query=${encodeURIComponent(message)}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -547,15 +423,17 @@
                 }
 
                 const data = await response.text();
-                
-                // Add bot response
-                addMessage(JSON.parse(data)["content"], false);
+                try {
+                    const parsedData = JSON.parse(data);
+                    addMessage(parsedData['html'] || data, false);
+                } catch (e) {
+                    addMessage(data, false);
+                }
 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage(`❌ Error sending message to webhook: ${error.message}<br><br>Please ensure your n8n server is running at:<br><code>${WEBHOOK_URL}</code>`, false);
+                addMessage(`❌ Error sending message to webhook: ${error.message}<br><br>Please ensure your n8n server is running at:<br><code class="bg-gray-100 px-2 py-1 rounded">${WEBHOOK_URL}</code>`, false);
             } finally {
-                // Re-enable input
                 userInput.disabled = false;
                 sendButton.disabled = false;
                 buttonText.textContent = 'Send';
@@ -565,16 +443,10 @@
         }
 
         function scrollToBottom() {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            setTimeout(() => {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 100);
         }
-
-        // Initialize
-        userInput.focus();
-        
-        // Auto-resize on load
-        window.addEventListener('load', () => {
-            autoResize(userInput);
-        });
     </script>
 </body>
 </html>
